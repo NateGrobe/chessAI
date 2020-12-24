@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "mapRoot": "./game/",
+    "module": "none",
+    "noImplicitAny": true,
+    "outFile": "./build/build.js",
+    "preserveConstEnums": true,
+    "removeComments": true,
+    "rootDir": "./game/",
+    "sourceMap": true,
+    "sourceRoot": "./game/",
+    "target": "es5"
+  }
+}

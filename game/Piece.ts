@@ -1,0 +1,194 @@
+class Piece {
+  colour: string;
+  loc: number;
+  name: string;
+
+  draw() {
+    let coords = this.convertCoord(this.loc);
+    fill(this.colorToString(this.colour));
+    strokeWeight(2);
+    this.colour === 'white' ? stroke(0) : stroke(255);
+    textSize(50);
+    text(this.name, coords[0], coords[1]);
+  }
+
+  private convertCoord(coord: number): number[] {
+    let x: number;
+    let y: number;
+
+    if (coord === 0) {
+      x = coord;
+      y = Math.floor((coord + 1) / 8);
+    } else if ((coord + 1) % 8 === 0) {
+      x = 7;
+      y = Math.floor((coord + 1) / 8) - 1;
+    } else {
+      x = ((coord + 1) % 8) - 1;
+      y = Math.floor((coord + 1) / 8);
+    }
+
+    return [x * 125 + 50, y * 125 + 125 - 45];
+  }
+
+  private colorToString(colour: string): p5.Color{
+    return colour === 'black' ? color(0, 0, 0) : color(255, 255, 255);
+  }
+
+  movePiece(newLoc: number, pieces: Piece[]): Piece[]{
+    return pieces;
+  };
+
+}
+
+
+class Pawn extends Piece {
+  // moves +8 or +16 on first turn
+  constructor(colour: string, sp: number) {
+    super();
+    this.name = 'P';
+    this.colour = colour;
+    this.loc = sp;
+  }
+
+  // need to add taking pawns at a diagonal and stop collisions
+  movePiece(newLoc: number): Piece[] {
+    if (this.colour === 'white') {
+      if(this.loc >= 7 && this.loc < 16) {
+        if(newLoc === this.loc + 8 || newLoc === this.loc + 16) {
+          this.loc = newLoc;
+        }
+      } else if(newLoc === this.loc + 8) {
+        this.loc = newLoc;
+      }
+    } else {
+      if(this.loc >= 47 && this.loc < 56) {
+        if(newLoc === this.loc - 8 || newLoc === this.loc - 16) {
+          this.loc = newLoc;
+        }
+      } else if(newLoc === this.loc - 8) {
+        this.loc = newLoc;
+      }
+    }
+    return pieces;
+  }
+}
+
+
+class Rook extends Piece {
+  constructor(colour: string, sp: number) {
+    super();
+    this.name = 'R';
+    this.colour = colour;
+    this.loc = sp;
+  }
+
+  // need to handle removing pieces still
+  movePiece(newLoc: number, pieces: Piece[]): Piece[] {
+    let blocked = false;
+    // moving down a column
+    if (newLoc > this.loc && newLoc % 8 === this.loc % 8) {
+      for(let i = this.loc; i <= newLoc; i += 8) {
+        for(let p of pieces) {
+          if(p.loc === i && i != this.loc) {
+            if(p.loc === newLoc && p.colour !== this.colour) {
+              pieces = pieces.filter(rp => rp !== p);
+              break;
+            } 
+            blocked = true;
+            break;
+          }
+        }
+      }
+      // move up a column
+    } else if (newLoc < this.loc && newLoc % 8 === this.loc % 8) {
+      for(let i = this.loc; i >= newLoc; i -= 8) {
+        for(let p of pieces) {
+          if(p.loc === i && i != this.loc) {
+            if(p.loc === newLoc && p.colour !== this.colour) {
+              pieces = pieces.filter(rp => rp !== p);
+              break;
+            }
+            blocked = true;
+            break;
+          }
+        }
+      }
+      // move right
+    } else if (newLoc > this.loc && Math.floor((this.loc) / 8) === Math.floor((newLoc) / 8)) {
+      for(let i = this.loc; i <= newLoc; i++) {
+        for(let p of pieces) {
+          if(p.loc === i && i != this.loc) {
+            if(p.loc === newLoc && p.colour !== this.colour) {
+              pieces = pieces.filter(rp => rp !== p);
+              break;
+            } 
+            blocked = true;
+            break;
+          }
+        }
+      }
+      // move left
+    } else if (newLoc < this.loc && Math.floor((this.loc) / 8) === Math.floor((newLoc) / 8)) {
+      for(let i = this.loc; i >= newLoc; i--) {
+        for(let p of pieces) {
+          if(p.loc === i && i != this.loc) {
+            if(p.loc === newLoc && p.colour !== this.colour) {
+              pieces = pieces.filter(rp => rp !== p);
+              break;
+            } 
+            blocked = true;
+            break;
+          }
+        }
+      }
+      // any other move won't work
+    } else {
+      blocked = true;
+    }
+
+    if(!blocked) {
+      this.loc = newLoc;
+    }
+    return pieces;
+  }
+}
+
+class Bishop extends Piece {
+  // moves +8 or +16 on first turn
+  constructor(colour: string, sp: number) {
+    super();
+    this.name = 'B';
+    this.colour = colour;
+    this.loc = sp;
+  }
+}
+
+class Knight extends Piece {
+  // moves +8 or +16 on first turn
+  constructor(colour: string, sp: number) {
+    super();
+    this.name = 'H';
+    this.colour = colour;
+    this.loc = sp;
+  }
+}
+
+class Queen extends Piece {
+  // moves +8 or +16 on first turn
+  constructor(colour: string, sp: number) {
+    super();
+    this.name = 'Q';
+    this.colour = colour;
+    this.loc = sp;
+  }
+}
+
+class King extends Piece {
+  // moves +8 or +16 on first turn
+  constructor(colour: string, sp: number) {
+    super();
+    this.name = 'K';
+    this.colour = colour;
+    this.loc = sp;
+  }
+}
