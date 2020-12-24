@@ -78,7 +78,6 @@ var Piece = (function () {
     Piece.prototype.movePiece = function (newLoc, pieces) {
         return pieces;
     };
-    ;
     return Piece;
 }());
 var Pawn = (function (_super) {
@@ -277,9 +276,8 @@ var Rook = (function (_super) {
         else {
             blocked = true;
         }
-        if (!blocked) {
+        if (!blocked)
             this.loc = newLoc;
-        }
         return pieces;
     };
     return Rook;
@@ -293,6 +291,99 @@ var Bishop = (function (_super) {
         _this.loc = sp;
         return _this;
     }
+    Bishop.prototype.movePiece = function (newLoc, pieces) {
+        var blocked = false;
+        if (newLoc > this.loc && (newLoc - this.loc) % 9 === 0) {
+            for (var i = this.loc; i <= newLoc; i += 9) {
+                var _loop_7 = function (p) {
+                    if (p.loc === i && i != this_7.loc) {
+                        if (p.loc === newLoc && p.colour !== this_7.colour) {
+                            pieces = pieces.filter(function (rp) { return rp !== p; });
+                            return "break";
+                        }
+                        blocked = true;
+                        return "break";
+                    }
+                };
+                var this_7 = this;
+                for (var _i = 0, pieces_11 = pieces; _i < pieces_11.length; _i++) {
+                    var p = pieces_11[_i];
+                    var state_7 = _loop_7(p);
+                    if (state_7 === "break")
+                        break;
+                }
+            }
+        }
+        else if (newLoc < this.loc && (this.loc - newLoc) % 7 === 0) {
+            for (var i = this.loc; i >= newLoc; i -= 7) {
+                var _loop_8 = function (p) {
+                    if (p.loc === i && i != this_8.loc) {
+                        if (p.loc === newLoc && p.colour !== this_8.colour) {
+                            pieces = pieces.filter(function (rp) { return rp !== p; });
+                            return "break";
+                        }
+                        blocked = true;
+                        return "break";
+                    }
+                };
+                var this_8 = this;
+                for (var _a = 0, pieces_12 = pieces; _a < pieces_12.length; _a++) {
+                    var p = pieces_12[_a];
+                    var state_8 = _loop_8(p);
+                    if (state_8 === "break")
+                        break;
+                }
+            }
+        }
+        else if (newLoc > this.loc && (newLoc - this.loc) % 7 === 0) {
+            for (var i = this.loc; i <= newLoc; i += 7) {
+                var _loop_9 = function (p) {
+                    if (p.loc === i && i != this_9.loc) {
+                        if (p.loc === newLoc && p.colour !== this_9.colour) {
+                            pieces = pieces.filter(function (rp) { return rp !== p; });
+                            return "break";
+                        }
+                        blocked = true;
+                        return "break";
+                    }
+                };
+                var this_9 = this;
+                for (var _b = 0, pieces_13 = pieces; _b < pieces_13.length; _b++) {
+                    var p = pieces_13[_b];
+                    var state_9 = _loop_9(p);
+                    if (state_9 === "break")
+                        break;
+                }
+            }
+        }
+        else if (newLoc < this.loc && (this.loc - newLoc) % 9 === 0) {
+            for (var i = this.loc; i >= newLoc; i -= 9) {
+                var _loop_10 = function (p) {
+                    if (p.loc === i && i != this_10.loc) {
+                        if (p.loc === newLoc && p.colour !== this_10.colour) {
+                            pieces = pieces.filter(function (rp) { return rp !== p; });
+                            return "break";
+                        }
+                        blocked = true;
+                        return "break";
+                    }
+                };
+                var this_10 = this;
+                for (var _c = 0, pieces_14 = pieces; _c < pieces_14.length; _c++) {
+                    var p = pieces_14[_c];
+                    var state_10 = _loop_10(p);
+                    if (state_10 === "break")
+                        break;
+                }
+            }
+        }
+        else {
+            blocked = true;
+        }
+        if (!blocked)
+            this.loc = newLoc;
+        return pieces;
+    };
     return Bishop;
 }(Piece));
 var Knight = (function (_super) {

@@ -12,6 +12,7 @@ class Piece {
     text(this.name, coords[0], coords[1]);
   }
 
+  // converts from 1D coordinates to 2D coordinates with offsets for letters
   private convertCoord(coord: number): number[] {
     let x: number;
     let y: number;
@@ -36,8 +37,7 @@ class Piece {
 
   movePiece(newLoc: number, pieces: Piece[]): Piece[]{
     return pieces;
-  };
-
+  }
 }
 
 
@@ -191,30 +191,92 @@ class Rook extends Piece {
           }
         }
       }
-      // any other move won't work
     } else {
       blocked = true;
     }
 
-    if(!blocked) {
-      this.loc = newLoc;
-    }
+    if(!blocked) this.loc = newLoc;
     return pieces;
   }
 }
 
 class Bishop extends Piece {
-  // moves +8 or +16 on first turn
   constructor(colour: string, sp: number) {
     super();
     this.name = 'B';
     this.colour = colour;
     this.loc = sp;
   }
+
+  movePiece(newLoc: number, pieces: Piece[]): Piece[] {
+    let blocked = false;
+    // moving down right
+
+    if (newLoc > this.loc && (newLoc - this.loc) % 9 === 0) {
+      for(let i = this.loc; i <= newLoc; i += 9) {
+        for(let p of pieces) {
+          if(p.loc === i && i != this.loc) {
+            if(p.loc === newLoc && p.colour !== this.colour) {
+              pieces = pieces.filter(rp => rp !== p);
+              break;
+            } 
+            blocked = true;
+            break;
+          }
+        }
+      }
+      // move up right
+    } else if (newLoc < this.loc && (this.loc - newLoc) % 7 === 0) {
+      for(let i = this.loc; i >= newLoc; i -= 7) {
+        for(let p of pieces) {
+          if(p.loc === i && i != this.loc) {
+            if(p.loc === newLoc && p.colour !== this.colour) {
+              pieces = pieces.filter(rp => rp !== p);
+              break;
+            }
+            blocked = true;
+            break;
+          }
+        }
+      }
+      // move down left
+    } else if (newLoc > this.loc && (newLoc - this.loc) % 7 === 0){
+      for(let i = this.loc; i <= newLoc; i += 7) {
+        for(let p of pieces) {
+          if(p.loc === i && i != this.loc) {
+            if(p.loc === newLoc && p.colour !== this.colour) {
+              pieces = pieces.filter(rp => rp !== p);
+              break;
+            }
+            blocked = true;
+            break;
+          }
+        }
+      }
+      // move up left
+    } else if (newLoc < this.loc && (this.loc - newLoc) % 9 === 0) {
+      for(let i = this.loc; i >= newLoc; i -= 9) {
+        for(let p of pieces) {
+          if(p.loc === i && i != this.loc) {
+            if(p.loc === newLoc && p.colour !== this.colour) {
+              pieces = pieces.filter(rp => rp !== p);
+              break;
+            }
+            blocked = true;
+            break;
+          }
+        }
+      }
+    } else {
+      blocked = true;
+    }
+
+    if(!blocked) this.loc = newLoc;
+    return pieces;
+  }
 }
 
 class Knight extends Piece {
-  // moves +8 or +16 on first turn
   constructor(colour: string, sp: number) {
     super();
     this.name = 'H';
@@ -224,7 +286,6 @@ class Knight extends Piece {
 }
 
 class Queen extends Piece {
-  // moves +8 or +16 on first turn
   constructor(colour: string, sp: number) {
     super();
     this.name = 'Q';
@@ -234,7 +295,6 @@ class Queen extends Piece {
 }
 
 class King extends Piece {
-  // moves +8 or +16 on first turn
   constructor(colour: string, sp: number) {
     super();
     this.name = 'K';
