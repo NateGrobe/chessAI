@@ -52,23 +52,73 @@ class Pawn extends Piece {
 
   // need to add taking pawns at a diagonal and stop collisions
   movePiece(newLoc: number): Piece[] {
+    let blocked = false;
+    // handle white pawns
     if (this.colour === 'white') {
-      if(this.loc >= 7 && this.loc < 16) {
-        if(newLoc === this.loc + 8 || newLoc === this.loc + 16) {
-          this.loc = newLoc;
+      // handle 1 or 2 tiles from start movement
+      if(this.loc >= 7 && this.loc < 16 && (newLoc === this.loc + 8 || newLoc === this.loc + 16)) {
+        for (let p of pieces) {
+          if (p.loc === this.loc + 8 || p.loc === newLoc) {
+            blocked = true;
+            break;
+          }
         }
+        // handle 1 tile movement
       } else if(newLoc === this.loc + 8) {
-        this.loc = newLoc;
-      }
-    } else {
-      if(this.loc >= 47 && this.loc < 56) {
-        if(newLoc === this.loc - 8 || newLoc === this.loc - 16) {
-          this.loc = newLoc;
+        for (let p of pieces) {
+          if (p.loc === newLoc) {
+            blocked = true;
+            break;
+          }
         }
+        // handle removing opponent piece at a diagonal
+      } else if (newLoc === this.loc + 9 || newLoc === this.loc + 7) {
+        for (let p of pieces) {
+          if (p.loc === newLoc && p.colour !== this.colour) {
+            pieces = pieces.filter(rp => rp !== p);
+            blocked = false;
+            break;
+          }
+          blocked = true;
+        }
+      } else {
+        blocked = true;
+      }
+      // handle black pawns
+    } else {
+      // handle 1 or tiles from start movement
+      if(this.loc >= 47 && this.loc < 56 && (newLoc === this.loc - 8 || newLoc === this.loc - 16)) {
+        console.log('here');
+        for (let p of pieces) {
+          if (p.loc === this.loc - 8 || p.loc === newLoc) {
+            blocked = true;
+            break;
+          }
+        }
+        // handle 1 tile movement
       } else if(newLoc === this.loc - 8) {
-        this.loc = newLoc;
+        for (let p of pieces) {
+          if (p.loc === newLoc) {
+            blocked = true;
+            break;
+          }
+        }
+        // handle removing opponent piece at a diagonal
+      } else if (newLoc === this.loc - 9 || newLoc === this.loc - 7) {
+        for (let p of pieces) {
+          if (p.loc === newLoc && p.colour !== this.colour) {
+            pieces = pieces.filter(rp => rp !== p);
+            blocked = false;
+            break;
+          }
+          blocked = true;
+        }
+      } else {
+        blocked = true;
       }
     }
+
+    if(!blocked) this.loc = newLoc;
     return pieces;
   }
 }
