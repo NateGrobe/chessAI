@@ -3,7 +3,7 @@ class Piece {
   loc: number;
   name: string;
 
-  draw() {
+  draw(): void {
     let coords = this.convertCoord(this.loc);
     fill(this.colorToString(this.colour));
     strokeWeight(2);
@@ -31,7 +31,7 @@ class Piece {
     return [x * 125 + 50, y * 125 + 125 - 45];
   }
 
-  private colorToString(colour: string): p5.Color{
+  private colorToString(colour: string): p5.Color {
     return colour === 'black' ? color(0, 0, 0) : color(255, 255, 255);
   }
 

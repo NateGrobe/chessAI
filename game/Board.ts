@@ -7,11 +7,11 @@ class Tile {
     this.active = false;
   }
 
-  setActive() {
+  setActive(): void {
     this.active = true;
   }
 
-  setInactive() {
+  setInactive(): void {
     this.active = false;
   }
 }
@@ -25,7 +25,7 @@ class Board {
     }
   }
 
-  draw() {
+  draw(): void {
     for(let i = 0; i < 8; i++) {
       for (let j = 0; j < 8; j++) {
         const x = 125 * i;
