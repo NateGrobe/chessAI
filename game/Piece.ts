@@ -51,7 +51,7 @@ class Pawn extends Piece {
   }
 
   // need to add taking pawns at a diagonal and stop collisions
-  movePiece(newLoc: number): Piece[] {
+  movePiece(newLoc: number, pieces: Piece[]): Piece[] {
     let blocked = false;
     // handle white pawns
     if (this.colour === 'white') {
@@ -88,7 +88,6 @@ class Pawn extends Piece {
     } else {
       // handle 1 or tiles from start movement
       if(this.loc >= 47 && this.loc < 56 && (newLoc === this.loc - 8 || newLoc === this.loc - 16)) {
-        console.log('here');
         for (let p of pieces) {
           if (p.loc === this.loc - 8 || p.loc === newLoc) {
             blocked = true;
@@ -135,6 +134,7 @@ class Rook extends Piece {
   // need to handle removing pieces still
   movePiece(newLoc: number, pieces: Piece[]): Piece[] {
     let blocked = false;
+    const piecesCopy = pieces;
     // moving down a column
     if (newLoc > this.loc && newLoc % 8 === this.loc % 8) {
       for(let i = this.loc; i <= newLoc; i += 8) {
@@ -195,8 +195,11 @@ class Rook extends Piece {
       blocked = true;
     }
 
-    if(!blocked) this.loc = newLoc;
-    return pieces;
+    if(!blocked) {
+      this.loc = newLoc;
+      return pieces;
+    }
+    return piecesCopy;
   }
 }
 
@@ -210,8 +213,8 @@ class Bishop extends Piece {
 
   movePiece(newLoc: number, pieces: Piece[]): Piece[] {
     let blocked = false;
+    const piecesCopy = pieces;
     // moving down right
-
     if (newLoc > this.loc && (newLoc - this.loc) % 9 === 0) {
       for(let i = this.loc; i <= newLoc; i += 9) {
         for(let p of pieces) {
@@ -271,8 +274,11 @@ class Bishop extends Piece {
       blocked = true;
     }
 
-    if(!blocked) this.loc = newLoc;
-    return pieces;
+    if(!blocked) {
+      this.loc = newLoc;
+      return pieces;
+    }
+    return piecesCopy;
   }
 }
 
