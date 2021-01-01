@@ -319,6 +319,132 @@ class Queen extends Piece {
     this.colour = colour;
     this.loc = sp;
   }
+
+  movePiece(newLoc: number, pieces: Piece[]): Piece[] {
+    let blocked = false;
+    const piecesCopy = pieces;
+
+    // move up left
+    if (newLoc > this.loc && (newLoc - this.loc) % 9 === 0) {
+      for(let i = this.loc; i <= newLoc; i += 9) {
+        for(let p of pieces) {
+          if(p.loc === i && i != this.loc) {
+            if(p.loc === newLoc && p.colour !== this.colour) {
+              pieces = pieces.filter(rp => rp !== p);
+              break;
+            } 
+            blocked = true;
+            break;
+          }
+        }
+      }
+      // move up right
+    } else if (newLoc < this.loc && (this.loc - newLoc) % 7 === 0) {
+      for(let i = this.loc; i >= newLoc; i -= 7) {
+        for(let p of pieces) {
+          if(p.loc === i && i != this.loc) {
+            if(p.loc === newLoc && p.colour !== this.colour) {
+              pieces = pieces.filter(rp => rp !== p);
+              break;
+            }
+            blocked = true;
+            break;
+          }
+        }
+      }
+      // move down left
+    } else if (newLoc > this.loc && (newLoc - this.loc) % 7 === 0){
+      for(let i = this.loc; i <= newLoc; i += 7) {
+        for(let p of pieces) {
+          if(p.loc === i && i != this.loc) {
+            if(p.loc === newLoc && p.colour !== this.colour) {
+              pieces = pieces.filter(rp => rp !== p);
+              break;
+            }
+            blocked = true;
+            break;
+          }
+        }
+      }
+      // move up left
+    } else if (newLoc < this.loc && (this.loc - newLoc) % 9 === 0) {
+      for(let i = this.loc; i >= newLoc; i -= 9) {
+        for(let p of pieces) {
+          if(p.loc === i && i != this.loc) {
+            if(p.loc === newLoc && p.colour !== this.colour) {
+              pieces = pieces.filter(rp => rp !== p);
+              break;
+            }
+            blocked = true;
+            break;
+          }
+        }
+      }
+    } else if (newLoc > this.loc && newLoc % 8 === this.loc % 8) {
+      for(let i = this.loc; i <= newLoc; i += 8) {
+        for(let p of pieces) {
+          if(p.loc === i && i != this.loc) {
+            if(p.loc === newLoc && p.colour !== this.colour) {
+              pieces = pieces.filter(rp => rp !== p);
+              break;
+            } 
+            blocked = true;
+            break;
+          }
+        }
+      }
+      // move up a column
+    } else if (newLoc < this.loc && newLoc % 8 === this.loc % 8) {
+      for(let i = this.loc; i >= newLoc; i -= 8) {
+        for(let p of pieces) {
+          if(p.loc === i && i != this.loc) {
+            if(p.loc === newLoc && p.colour !== this.colour) {
+              pieces = pieces.filter(rp => rp !== p);
+              break;
+            }
+            blocked = true;
+            break;
+          }
+        }
+      }
+      // move right
+    } else if (newLoc > this.loc && Math.floor((this.loc) / 8) === Math.floor((newLoc) / 8)) {
+      for(let i = this.loc; i <= newLoc; i++) {
+        for(let p of pieces) {
+          if(p.loc === i && i != this.loc) {
+            if(p.loc === newLoc && p.colour !== this.colour) {
+              pieces = pieces.filter(rp => rp !== p);
+              break;
+            } 
+            blocked = true;
+            break;
+          }
+        }
+      }
+      // move left
+    } else if (newLoc < this.loc && Math.floor((this.loc) / 8) === Math.floor((newLoc) / 8)) {
+      for(let i = this.loc; i >= newLoc; i--) {
+        for(let p of pieces) {
+          if(p.loc === i && i != this.loc) {
+            if(p.loc === newLoc && p.colour !== this.colour) {
+              pieces = pieces.filter(rp => rp !== p);
+              break;
+            } 
+            blocked = true;
+            break;
+          }
+        }
+      }
+    } else {
+      blocked = true;
+    }
+
+    if(!blocked) {
+      this.loc = newLoc;
+      return pieces;
+    }
+    return piecesCopy;
+  }
 }
 
 class King extends Piece {
