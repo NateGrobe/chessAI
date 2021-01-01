@@ -668,8 +668,12 @@ var King = (function (_super) {
 var board;
 var pieces = [];
 var active;
+var startButton;
+var started = false;
+var ended = false;
+var whiteTurn = false;
 function setup() {
-    createCanvas(1000, 1000);
+    createCanvas(1200, 1000);
     board = new Board();
     for (var i = 0; i < 16; i++) {
         if (i < 8) {
@@ -695,6 +699,10 @@ function setup() {
     pieces.push(new King('white', 3));
     pieces.push(new Queen('black', 60));
     pieces.push(new Queen('white', 4));
+    startButton = createButton('Start');
+    startButton.position(1100, 100);
+    startButton.size(100, 30);
+    startButton.mousePressed(startGame);
 }
 function draw() {
     background(255);
@@ -703,11 +711,13 @@ function draw() {
     pieces.forEach(function (p) { return p.draw(); });
 }
 function mouseClicked() {
+    if (!started)
+        return false;
     if (mouseX <= 1000 && mouseY <= 1000) {
         var x = Math.floor(mouseX / 125);
         var y = Math.floor(mouseY / 125);
-        var z = x + y * 8;
-        var tile_1 = board.tiles[z];
+        var newLoc = x + y * 8;
+        var tile_1 = board.tiles[newLoc];
         if (active === undefined) {
             var tf = pieces.filter(function (p) { return p.loc === tile_1.index; }).length;
             if (tf === 1) {
@@ -729,12 +739,46 @@ function mouseClicked() {
                     }
                 });
                 if (piece_1) {
-                    pieces = piece_1.movePiece(z, pieces);
-                    active = undefined;
+                    if ((piece_1.colour === 'white') === whiteTurn) {
+                        pieces = piece_1.movePiece(newLoc, pieces);
+                        active = undefined;
+                        if (piece_1.loc === newLoc)
+                            whiteTurn = !whiteTurn;
+                    }
+                    else {
+                        active = undefined;
+                    }
                 }
             }
         }
     }
+    if (checkWinner()) {
+        if (!whiteTurn) {
+            console.log('White wins!');
+        }
+        else {
+            console.log('Black wins!');
+        }
+        started = false;
+        ended = true;
+    }
+    return false;
+}
+function startGame() {
+    if (!started && !ended) {
+        started = true;
+        whiteTurn = true;
+    }
+}
+function checkWinner() {
+    var kingCounter = 0;
+    for (var _i = 0, pieces_25 = pieces; _i < pieces_25.length; _i++) {
+        var p = pieces_25[_i];
+        if (p.name === 'K')
+            kingCounter++;
+    }
+    if (kingCounter < 2)
+        return true;
     return false;
 }
 //# sourceMappingURL=../game/game/build.js.map

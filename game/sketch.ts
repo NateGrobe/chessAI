@@ -1,9 +1,13 @@
 let board: Board;
 let pieces: Piece[] = [];
 let active: number;
+let startButton: p5.Element;
+let started = false;
+let ended = false;
+let whiteTurn = false;
 
-function setup() {
-  createCanvas(1000, 1000);
+function setup(): void {
+  createCanvas(1200, 1000);
   
   // add board
   board = new Board();
@@ -42,22 +46,29 @@ function setup() {
   // queens
   pieces.push(new Queen('black', 60));
   pieces.push(new Queen('white', 4));
+
+  // buttons
+  startButton = createButton('Start');
+  startButton.position(1100, 100);
+  startButton.size(100, 30);
+  startButton.mousePressed(startGame);
 }
 
-function draw() {
+function draw(): void {
   background(255);
   square(0, 0, 1000);
   board.draw();
   pieces.forEach(p => p.draw());
 }
 
-function mouseClicked() {
+function mouseClicked(): boolean {
+  if (!started) return false;
   if (mouseX <= 1000 && mouseY <= 1000) {
     const x = Math.floor(mouseX / 125);
     const y = Math.floor(mouseY / 125);
-    const z = x + y * 8;
+    const newLoc = x + y * 8;
 
-    let tile = board.tiles[z];
+    let tile = board.tiles[newLoc];
     // no tile selected
     if (active === undefined) {
       let tf = pieces.filter(p => p.loc === tile.index).length;
@@ -73,7 +84,7 @@ function mouseClicked() {
       } else {
         board.tiles[active].setInactive();
 
-        // get active peice
+        // get active piece
         let piece: Piece;
         pieces.forEach(p => {
           if(p.loc === active) {
@@ -83,11 +94,45 @@ function mouseClicked() {
 
         // move the piece if the piece exists
         if(piece) {
-          pieces = piece.movePiece(z, pieces);
-          active = undefined;
+          if((piece.colour === 'white') === whiteTurn){
+            pieces = piece.movePiece(newLoc, pieces);
+            active = undefined;
+            if(piece.loc === newLoc) whiteTurn = !whiteTurn;
+          } else {
+            active = undefined;
+          }
         }
       }
     }
   }
+  if(checkWinner()) {
+    if(!whiteTurn) {
+      console.log('White wins!');
+    } else {
+      console.log('Black wins!');
+    }
+    started = false;
+    ended = true;
+  }
   return false;
 }
+
+function startGame(): void {
+  if(!started && !ended) {
+    started = true;
+    whiteTurn = true;
+  }
+}
+
+function checkWinner(): boolean {
+  let kingCounter = 0;
+  for(let p of pieces) {
+    if(p.name === 'K') kingCounter++;
+  }
+
+  if(kingCounter < 2) return true;
+  return false;
+}
+
+
+// handle check, checkmate, castling, en passant and pawn promotion
