@@ -24,6 +24,9 @@ var Board = (function () {
                 var x = 125 * i;
                 var y = 125 * j;
                 var colour = (i - j) % 2 == 0 ? color(255, 255, 255) : color(0, 0, 0);
+                if (this.tiles[i + j * 8].active) {
+                    colour = (i - j) % 2 == 0 ? color(200, 200, 200) : color(55, 55, 55);
+                }
                 fill(colour);
                 square(x, y, 125);
             }
@@ -395,6 +398,35 @@ var Knight = (function (_super) {
         _this.loc = sp;
         return _this;
     }
+    Knight.prototype.movePiece = function (newLoc, pieces) {
+        var absDiff = Math.abs(newLoc - this.loc);
+        var blocked = false;
+        if (absDiff === 6 || absDiff === 10 || absDiff === 15 || absDiff === 17) {
+            var _loop_11 = function (p) {
+                if (p.loc === newLoc && p.colour !== this_11.colour) {
+                    pieces = pieces.filter(function (rp) { return rp !== p; });
+                    return "break";
+                }
+                else if (p.loc === newLoc && p.colour === this_11.colour) {
+                    blocked = true;
+                    return "break";
+                }
+            };
+            var this_11 = this;
+            for (var _i = 0, pieces_15 = pieces; _i < pieces_15.length; _i++) {
+                var p = pieces_15[_i];
+                var state_11 = _loop_11(p);
+                if (state_11 === "break")
+                    break;
+            }
+        }
+        else {
+            blocked = true;
+        }
+        if (!blocked)
+            this.loc = newLoc;
+        return pieces;
+    };
     return Knight;
 }(Piece));
 var Queen = (function (_super) {

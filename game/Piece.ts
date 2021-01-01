@@ -283,6 +283,27 @@ class Knight extends Piece {
     this.colour = colour;
     this.loc = sp;
   }
+
+  movePiece(newLoc: number, pieces: Piece[]): Piece[] {
+    const absDiff = Math.abs(newLoc - this.loc);
+    let blocked = false;
+    if(absDiff === 6 || absDiff === 10 || absDiff === 15 || absDiff === 17) {
+      for(let p of pieces) {
+        if(p.loc === newLoc && p.colour !== this.colour) {
+          pieces = pieces.filter(rp => rp !== p);
+          break;
+        } else if(p.loc === newLoc && p.colour === this.colour) {
+          blocked = true;
+          break;
+        }
+      }
+    } else {
+      blocked = true;
+    }
+
+    if(!blocked) this.loc = newLoc;
+    return pieces;
+  }
 }
 
 class Queen extends Piece {
