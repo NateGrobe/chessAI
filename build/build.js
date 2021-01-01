@@ -634,6 +634,35 @@ var King = (function (_super) {
         _this.loc = sp;
         return _this;
     }
+    King.prototype.movePiece = function (newLoc, pieces) {
+        var blocked;
+        var absDiff = Math.abs(newLoc - this.loc);
+        if (absDiff === 1 || absDiff === 7 || absDiff === 8 || absDiff === 9) {
+            var _loop_20 = function (p) {
+                if (p.loc === newLoc && p.colour !== this_20.colour) {
+                    pieces = pieces.filter(function (rp) { return rp !== p; });
+                    return "break";
+                }
+                else if (p.loc === newLoc && p.colour === this_20.colour) {
+                    blocked = true;
+                    return "break";
+                }
+            };
+            var this_20 = this;
+            for (var _i = 0, pieces_24 = pieces; _i < pieces_24.length; _i++) {
+                var p = pieces_24[_i];
+                var state_20 = _loop_20(p);
+                if (state_20 === "break")
+                    break;
+            }
+        }
+        else {
+            blocked = true;
+        }
+        if (!blocked)
+            this.loc = newLoc;
+        return pieces;
+    };
     return King;
 }(Piece));
 var board;

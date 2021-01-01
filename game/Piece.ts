@@ -454,4 +454,25 @@ class King extends Piece {
     this.colour = colour;
     this.loc = sp;
   }
+
+  movePiece(newLoc: number, pieces: Piece[]): Piece[] {
+    let blocked;
+    const absDiff = Math.abs(newLoc - this.loc);
+    if(absDiff === 1 || absDiff === 7 || absDiff === 8 || absDiff === 9) {
+      for(let p of pieces) {
+        if(p.loc === newLoc && p.colour !== this.colour) {
+          pieces = pieces.filter(rp => rp !== p);
+          break;
+        } else if(p.loc === newLoc && p.colour === this.colour) {
+          blocked = true;
+          break;
+        }
+      }
+    } else {
+      blocked = true;
+    }
+
+    if (!blocked) this.loc = newLoc;
+    return pieces;
+  }
 }
