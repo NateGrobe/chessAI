@@ -2,6 +2,7 @@ class Piece {
   colour: string;
   loc: number;
   name: string;
+  check: boolean
 
   draw(): void {
     let coords = this.convertCoord(this.loc);
@@ -29,6 +30,10 @@ class Piece {
     }
 
     return [x * 125 + 50, y * 125 + 125 - 45];
+  }
+
+  inCheck(pieces: Piece[], newLoc: number): boolean { 
+    return false;
   }
 
   private colorToString(colour: string): p5.Color {
@@ -453,6 +458,7 @@ class King extends Piece {
     this.name = 'K';
     this.colour = colour;
     this.loc = sp;
+    this.check = false;
   }
 
   movePiece(newLoc: number, pieces: Piece[]): Piece[] {
@@ -474,5 +480,30 @@ class King extends Piece {
 
     if (!blocked) this.loc = newLoc;
     return pieces;
+  }
+
+  // add checkmate by calling this function on all moves for a king each turn
+  inCheck(pieces: Piece[], newLoc: number): boolean {
+    const nl = newLoc > -1 ? newLoc : this.loc;
+
+    // check for pawns
+    let pawns = pieces.filter(p => p.colour !== this.colour && p.name === 'P');
+    for(let i = 0; i < pawns.length; i++) {
+      let p = pawns[i];
+      if(nl + 9 === p.loc && p.colour === 'black') {
+        this.check = true;
+        return true;
+      } else if (nl + 7 === p.loc && p.colour === 'black') {
+        this.check = true;
+        return true;
+      } else if (nl - 7 === p.loc && p.colour === 'white') {
+        this.check = true;
+        return true;
+      } else if (nl - 9 === p.loc && p.colour === 'white') {
+        this.check = true;
+        return true;
+      }
+    }
+    return false;
   }
 }
