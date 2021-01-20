@@ -504,6 +504,35 @@ class King extends Piece {
         return true;
       }
     }
+
+    // horizontal
+    let hPieces = pieces.filter(p => Math.floor(p.loc / 8) === Math.floor(nl / 8))
+    let threats = hPieces.filter(p => p.colour !== this.colour && (p.name === 'R' || p.name === 'Q'));
+
+    if (threats.length > 0) {
+      for(let i = 0; i < threats.length; i++) {
+        let t = threats[i];
+        // check from left
+        if (t.loc < nl) {
+          let buffers = hPieces.filter(p => p.loc < nl && p.loc > t.loc);
+          if (buffers.length === 0 && threats.length > 0) {
+            console.log('2');
+            this.check = true;
+            return true;
+          }
+          // check from right
+        } else if (t.loc > nl) {
+          let buffers = hPieces.filter(p => p.loc > nl && p.loc < t.loc);
+          if (buffers.length === 0 && threats.length > 0) {
+            console.log('3');
+            this.check = true;
+            return true;
+          }
+        }
+      }
+    }
+
+    this.check = false;
     return false;
   }
 }

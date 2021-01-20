@@ -141,31 +141,10 @@ function mouseClicked(): boolean {
     ended = true;
   }
 
+  // stop moves from being made if game over
   if (ended) return false;
 
-  /*
-  // look for check after each turn
-  let king = whiteTurn
-    ? pieces.filter(p => p.colour === 'white' && p.name === 'K')[0]
-    : pieces.filter(p => p.colour === 'black' && p.name === 'K')[0];
-
-  // clean this up after the AI is done
-  if (king.inCheck(pieces, -1)) {
-    if (king.colour === 'white') {
-      wCheckMsg.html('White in check!');
-    } else if (king.colour === 'black') {
-      bCheckMsg.html('Black in check!');
-    }
-  } else {
-    if (king.colour === 'white') {
-      wCheckMsg.html('');
-    } else if (king.colour === 'black') {
-      bCheckMsg.html('');
-    }
-  }
-  */
-
-  // look for check each turn
+  // look for check each turn on both kings and display message
   let kings = pieces.filter(p => p.name === 'K');
 
   if(kings[0].inCheck(pieces, -1))
