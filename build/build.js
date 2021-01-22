@@ -683,38 +683,58 @@ var King = (function (_super) {
             var p = pawns[i];
             if (nl + 9 === p.loc && p.colour === 'black') {
                 this.check = true;
+                console.log('pawn');
                 return true;
             }
             else if (nl + 7 === p.loc && p.colour === 'black') {
                 this.check = true;
+                console.log('pawn');
                 return true;
             }
             else if (nl - 7 === p.loc && p.colour === 'white') {
                 this.check = true;
+                console.log('pawn');
                 return true;
             }
             else if (nl - 9 === p.loc && p.colour === 'white') {
                 this.check = true;
+                console.log('pawn');
                 return true;
             }
         }
-        var hPieces = pieces.filter(function (p) { return Math.floor(p.loc / 8) === Math.floor(nl / 8); });
-        var threats = hPieces.filter(function (p) { return p.colour !== _this.colour && (p.name === 'R' || p.name === 'Q'); });
+        var hvPieces = pieces.filter(function (p) { return Math.floor(p.loc / 8) === Math.floor(nl / 8) || p.loc % 8 === nl % 8; });
+        var threats = hvPieces.filter(function (p) { return p.colour !== _this.colour && (p.name === 'R' || p.name === 'Q'); });
         if (threats.length > 0) {
             var _loop_23 = function (i) {
                 var t = threats[i];
-                if (t.loc < nl) {
-                    var buffers = hPieces.filter(function (p) { return p.loc < nl && p.loc > t.loc; });
+                if (t.loc < nl && t.loc % 8 !== nl % 8) {
+                    var buffers = hvPieces.filter(function (p) { return p.loc < nl && p.loc > t.loc && p !== _this; });
                     if (buffers.length === 0 && threats.length > 0) {
-                        console.log('2');
+                        console.log('left');
                         this_22.check = true;
                         return { value: true };
                     }
                 }
-                else if (t.loc > nl) {
-                    var buffers = hPieces.filter(function (p) { return p.loc > nl && p.loc < t.loc; });
+                else if (t.loc > nl && t.loc % 8 !== nl % 8) {
+                    var buffers = hvPieces.filter(function (p) { return p.loc > nl && p.loc < t.loc && p !== _this; });
                     if (buffers.length === 0 && threats.length > 0) {
-                        console.log('3');
+                        console.log('right');
+                        this_22.check = true;
+                        return { value: true };
+                    }
+                }
+                if (t.loc < nl && t.loc % 8 === nl % 8) {
+                    var buffers = hvPieces.filter(function (p) { return p.loc % 8 === nl % 8 && p.loc < nl && p.loc > t.loc && p !== _this; });
+                    if (buffers.length === 0 && threats.length > 0) {
+                        console.log('above');
+                        this_22.check = true;
+                        return { value: true };
+                    }
+                }
+                else if (t.loc > nl && t.loc % 8 === nl % 8) {
+                    var buffers = hvPieces.filter(function (p) { return p.loc % 8 === nl % 8 && p.loc > nl && p.loc < t.loc && p !== _this; });
+                    if (buffers.length === 0 && threats.length > 0) {
+                        console.log('below');
                         this_22.check = true;
                         return { value: true };
                     }
