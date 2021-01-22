@@ -698,6 +698,36 @@ var King = (function (_super) {
                 return true;
             }
         }
+        var hPieces = pieces.filter(function (p) { return Math.floor(p.loc / 8) === Math.floor(nl / 8); });
+        var threats = hPieces.filter(function (p) { return p.colour !== _this.colour && (p.name === 'R' || p.name === 'Q'); });
+        if (threats.length > 0) {
+            var _loop_23 = function (i) {
+                var t = threats[i];
+                if (t.loc < nl) {
+                    var buffers = hPieces.filter(function (p) { return p.loc < nl && p.loc > t.loc; });
+                    if (buffers.length === 0 && threats.length > 0) {
+                        console.log('2');
+                        this_22.check = true;
+                        return { value: true };
+                    }
+                }
+                else if (t.loc > nl) {
+                    var buffers = hPieces.filter(function (p) { return p.loc > nl && p.loc < t.loc; });
+                    if (buffers.length === 0 && threats.length > 0) {
+                        console.log('3');
+                        this_22.check = true;
+                        return { value: true };
+                    }
+                }
+            };
+            var this_22 = this;
+            for (var i = 0; i < threats.length; i++) {
+                var state_21 = _loop_23(i);
+                if (typeof state_21 === "object")
+                    return state_21.value;
+            }
+        }
+        this.check = false;
         return false;
     };
     return King;

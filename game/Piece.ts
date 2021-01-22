@@ -492,39 +492,61 @@ class King extends Piece {
       let p = pawns[i];
       if(nl + 9 === p.loc && p.colour === 'black') {
         this.check = true;
+        console.log('pawn');
         return true;
       } else if (nl + 7 === p.loc && p.colour === 'black') {
         this.check = true;
+        console.log('pawn');
         return true;
       } else if (nl - 7 === p.loc && p.colour === 'white') {
         this.check = true;
+        console.log('pawn');
         return true;
       } else if (nl - 9 === p.loc && p.colour === 'white') {
         this.check = true;
+        console.log('pawn');
         return true;
       }
     }
 
+    // maybe expand this to handle vertical as well
     // horizontal
-    let hPieces = pieces.filter(p => Math.floor(p.loc / 8) === Math.floor(nl / 8))
-    let threats = hPieces.filter(p => p.colour !== this.colour && (p.name === 'R' || p.name === 'Q'));
+    let hvPieces = pieces.filter(p => Math.floor(p.loc / 8) === Math.floor(nl / 8) || p.loc % 8 === nl % 8);
+    let threats = hvPieces.filter(p => p.colour !== this.colour && (p.name === 'R' || p.name === 'Q'));
 
     if (threats.length > 0) {
       for(let i = 0; i < threats.length; i++) {
         let t = threats[i];
         // check from left
-        if (t.loc < nl) {
-          let buffers = hPieces.filter(p => p.loc < nl && p.loc > t.loc);
+        if (t.loc < nl && t.loc % 8 !== nl % 8) {
+          let buffers = hvPieces.filter(p => p.loc < nl && p.loc > t.loc && p !== this);
           if (buffers.length === 0 && threats.length > 0) {
-            console.log('2');
+            console.log('left');
             this.check = true;
             return true;
           }
           // check from right
-        } else if (t.loc > nl) {
-          let buffers = hPieces.filter(p => p.loc > nl && p.loc < t.loc);
+        } else if (t.loc > nl && t.loc % 8 !== nl % 8) {
+          let buffers = hvPieces.filter(p => p.loc > nl && p.loc < t.loc && p !== this);
           if (buffers.length === 0 && threats.length > 0) {
-            console.log('3');
+            console.log('right');
+            this.check = true;
+            return true;
+          }
+        }
+        // check from above
+        if (t.loc < nl && t.loc % 8 === nl % 8) {
+          let buffers = hvPieces.filter(p => p.loc % 8 === nl % 8 && p.loc < nl && p.loc > t.loc && p !== this);
+          if (buffers.length === 0 && threats.length > 0) {
+            console.log('above');
+            this.check = true;
+            return true;
+          }
+          // check from below
+        } else if (t.loc > nl && t.loc % 8 === nl % 8) {
+          let buffers = hvPieces.filter(p => p.loc % 8 === nl % 8 && p.loc > nl && p.loc < t.loc && p !== this);
+          if (buffers.length === 0 && threats.length > 0) {
+            console.log('below');
             this.check = true;
             return true;
           }
