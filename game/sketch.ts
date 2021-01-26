@@ -1,6 +1,7 @@
 let board: Board;
 let pieces: Piece[];
-let active: number;
+let activeX: number;
+let activeY: number;
 let startButton: p5.Element;
 let started: boolean;
 let ended: boolean;
@@ -21,39 +22,36 @@ function setup(): void {
   reset = false;
 
   // add pawns
-  for(let i = 0; i < 16; i++) {
-    if(i < 8) {
-      pieces.push(new Pawn('black', i + 48));
-    } else {
-      pieces.push(new Pawn('white', i));
-    }
+  for(let i = 0; i < 8; i++) {
+    pieces.push(new Pawn('white', i, 1));
+    pieces.push(new Pawn('black', i, 6));
   }
 
   // rooks
-  pieces.push(new Rook('black', 56));
-  pieces.push(new Rook('black', 63));
-  pieces.push(new Rook('white', 0));
-  pieces.push(new Rook('white', 7));
+  pieces.push(new Rook('white', 0, 0));
+  pieces.push(new Rook('white', 7, 0));
+  pieces.push(new Rook('black', 0, 7));
+  pieces.push(new Rook('black', 7, 7));
 
   // knights
-  pieces.push(new Knight('black', 57));
-  pieces.push(new Knight('black', 62));
-  pieces.push(new Knight('white', 1));
-  pieces.push(new Knight('white', 6));
+  pieces.push(new Knight('white', 1, 0));
+  pieces.push(new Knight('white', 6, 0));
+  pieces.push(new Knight('black', 1, 7));
+  pieces.push(new Knight('black', 6, 7));
 
   // bishops
-  pieces.push(new Bishop('black', 58));
-  pieces.push(new Bishop('black', 61));
-  pieces.push(new Bishop('white', 2));
-  pieces.push(new Bishop('white', 5));
+  pieces.push(new Bishop('white', 2, 0));
+  pieces.push(new Bishop('white', 5, 0));
+  pieces.push(new Bishop('black', 2, 7));
+  pieces.push(new Bishop('black', 5, 7));
 
   // kings
-  pieces.push(new King('black', 59));
-  pieces.push(new King('white', 3));
+  pieces.push(new King('white', 3, 0));
+  pieces.push(new King('black', 3, 7));
 
   // queens
-  pieces.push(new Queen('black', 60));
-  pieces.push(new Queen('white', 4));
+  pieces.push(new Queen('white', 4, 0));
+  pieces.push(new Queen('black', 4, 7));
 
   // buttons
   startButton = createButton('Start');
@@ -62,13 +60,11 @@ function setup(): void {
   startButton.mousePressed(startGame);
 
   // messages
-  wCheckMsg = createP("");
-  bCheckMsg = createP("");
+  wCheckMsg = createP('');
+  bCheckMsg = createP('');
 }
 
 function draw(): void {
-  background(255);
-  square(0, 0, 1000);
   board.draw(pieces, whiteTurn);
   pieces.forEach(p => p.draw());
 } 
@@ -78,57 +74,71 @@ function mouseClicked(): boolean {
   if (mouseX <= 1000 && mouseY <= 1000) {
     const x = Math.floor(mouseX / 125);
     const y = Math.floor(mouseY / 125);
-    const z = x + y * 8;
 
-    let tile = board.tiles[z];
+    const tile = board.tiles[y][x];
     // no tile selected
-    if (active === undefined) {
-      let piece = pieces.filter(p => p.loc === tile.index)[0];
+    if (activeX === undefined && activeY === undefined) {
+      const piece = pieces.filter(p => p.x === tile.x && p.y === tile.y)[0];
       // this doesn't allow a piece to be selected unless it is the proper turn
       if (piece){
         if((piece.colour === 'white') === whiteTurn) {
-          active = tile.index;
+          activeX = tile.x;
+          activeY = tile.y;
           tile.setActive();
         }
       }
     } else {
       // the same tile clicked twice
-      if (board.tiles[active].index === tile.index) {
+      // look into the use of 2d array vs indexing later
+      const st = board.tiles[activeY][activeX];
+      if (st.x === tile.x && st.y === tile.y) {
         tile.setInactive();
-        active = undefined;
+        activeX = undefined;
+        activeY = undefined;
       } else {
-        board.tiles[active].setInactive();
+        st.setInactive();
 
         // get active piece
         let piece: Piece;
         pieces.forEach(p => {
-          if(p.loc === active) {
+          if(p.x === activeX && p.y === activeY) {
             piece = p;
           }
         });
 
+        // need to handle inCheck 2d function
         // stops king from moving in check
         if (piece.name === 'K') {
-          if (piece.inCheck(pieces, z)) {
+          if (piece.inCheck(pieces, x, y)) {
             piece = undefined;
             tile.setInactive;
-            active = undefined;
+            activeX = undefined;
+            activeY = undefined;
           }
         }
+
 
         // move the piece if the piece exists
         if(piece) {
           if((piece.colour === 'white') === whiteTurn) {
-            pieces = piece.movePiece(z, pieces);
-            active = undefined;
-            if(piece.loc === z) whiteTurn = !whiteTurn;
+            pieces = piece.movePiece(x, y, pieces);
+            activeX = undefined;
+            activeY = undefined;
+            if(piece.x === x && piece.y === y) whiteTurn = !whiteTurn;
           } else {
-            active = undefined;
+            activeX = undefined;
+            activeY = undefined;
           }
         }
       }
     }
   }
+
+  console.log(whiteTurn);
+  
+  // for testing purposes
+  //whiteTurn = true;
+  //whiteTurn = false;
 
   // need this to update the dom with some kind of winner screen
   if(checkWinner()) {
@@ -145,15 +155,15 @@ function mouseClicked(): boolean {
   if (ended) return false;
 
   // look for check each turn on both kings and display message
-  let kings = pieces.filter(p => p.name === 'K');
+  const kings = pieces.filter(p => p.name === 'K');
 
-  if(kings[0].inCheck(pieces, -1))
-      wCheckMsg.html('Black in check!');
+  if(kings[0].inCheck(pieces, kings[0].x, kings[0].y))
+    wCheckMsg.html('White in check!');
   else
-      wCheckMsg.html('');
+    wCheckMsg.html('');
 
-  if(kings[1].inCheck(pieces, -1))
-      bCheckMsg.html('White in check!');
+  if(kings[1].inCheck(pieces, kings[1].x, kings[1].y))
+    bCheckMsg.html('Black in check!');
   else
     bCheckMsg.html('');
 
@@ -166,6 +176,7 @@ function startGame(): void {
     whiteTurn = true;
   }
 
+  // TODO: figure out check message reset issue
   // update button name based on game state
   if (reset) {
     startButton.html('Start');

@@ -3,9 +3,11 @@ class Piece {
   loc: number;
   name: string;
   check: boolean
+  x: number;
+  y: number;
 
   draw(): void {
-    let coords = this.convertCoord(this.loc);
+    const coords = [this.x * 125 + 50, this.y * 125 + 85];
     fill(this.colorToString(this.colour));
     strokeWeight(2);
     this.colour === 'white' ? stroke(0) : stroke(255);
@@ -13,26 +15,7 @@ class Piece {
     text(this.name, coords[0], coords[1]);
   }
 
-  // converts from 1D coordinates to 2D coordinates with offsets for letters
-  private convertCoord(coord: number): number[] {
-    let x: number;
-    let y: number;
-
-    if (coord === 0) {
-      x = coord;
-      y = Math.floor((coord + 1) / 8);
-    } else if ((coord + 1) % 8 === 0) {
-      x = 7;
-      y = Math.floor((coord + 1) / 8) - 1;
-    } else {
-      x = ((coord + 1) % 8) - 1;
-      y = Math.floor((coord + 1) / 8);
-    }
-
-    return [x * 125 + 50, y * 125 + 125 - 45];
-  }
-
-  inCheck(pieces: Piece[], newLoc: number): boolean { 
+  inCheck(pieces: Piece[], newX: number, newY: number): boolean { 
     return false;
   }
 
@@ -40,7 +23,7 @@ class Piece {
     return colour === 'black' ? color(0, 0, 0) : color(255, 255, 255);
   }
 
-  movePiece(newLoc: number, pieces: Piece[]): Piece[]{
+  movePiece(newX: number, newY: number, pieces: Piece[]): Piece[]{
     return pieces;
   }
 }
@@ -48,38 +31,38 @@ class Piece {
 
 class Pawn extends Piece {
   // moves +8 or +16 on first turn
-  constructor(colour: string, sp: number) {
+  constructor(colour: string, x: number, y: number) {
     super();
     this.name = 'P';
     this.colour = colour;
-    this.loc = sp;
+    this.x = x;
+    this.y = y;
   }
 
-  // need to add taking pawns at a diagonal and stop collisions
-  movePiece(newLoc: number, pieces: Piece[]): Piece[] {
+  movePiece(newX: number, newY: number, pieces: Piece[]): Piece[] {
     let blocked = false;
     // handle white pawns
     if (this.colour === 'white') {
       // handle 1 or 2 tiles from start movement
-      if(this.loc >= 7 && this.loc < 16 && (newLoc === this.loc + 8 || newLoc === this.loc + 16)) {
-        for (let p of pieces) {
-          if (p.loc === this.loc + 8 || p.loc === newLoc) {
+      if(this.y === 1 && newX === this.x && (newY === this.y + 1 || newY === this.y + 2)) {
+        for (const p of pieces) {
+          if ((p.y === this.y + 1 && p.x === this.x) || (p.x === newX && p.y === newY)) {
             blocked = true;
             break;
           }
         }
         // handle 1 tile movement
-      } else if(newLoc === this.loc + 8) {
-        for (let p of pieces) {
-          if (p.loc === newLoc) {
+      } else if(newY === this.y + 1 && newX === this.x) {
+        for (const p of pieces) {
+          if (p.x === newX && p.y === newY) {
             blocked = true;
             break;
           }
         }
         // handle removing opponent piece at a diagonal
-      } else if (newLoc === this.loc + 9 || newLoc === this.loc + 7) {
-        for (let p of pieces) {
-          if (p.loc === newLoc && p.colour !== this.colour) {
+      } else if (newX === this.x + 1 && newY === this.y + 1 || newX === this.x - 1 && newY === this.y + 1) {
+        for (const p of pieces) {
+          if ((p.x === newX && p.y === newY) && p.colour !== this.colour) {
             pieces = pieces.filter(rp => rp !== p);
             blocked = false;
             break;
@@ -89,28 +72,28 @@ class Pawn extends Piece {
       } else {
         blocked = true;
       }
-      // handle black pawns
+    // handle black pawns
     } else {
       // handle 1 or tiles from start movement
-      if(this.loc >= 47 && this.loc < 56 && (newLoc === this.loc - 8 || newLoc === this.loc - 16)) {
-        for (let p of pieces) {
-          if (p.loc === this.loc - 8 || p.loc === newLoc) {
+      if(this.y === 6 && newX === this.x && (newY === this.y - 1 || newY === this.y - 2)) {
+        for (const p of pieces) {
+          if ((p.y === this.y - 1 && p.x === this.x) || (p.x === newX && p.y === newY)) {
             blocked = true;
             break;
           }
         }
         // handle 1 tile movement
-      } else if(newLoc === this.loc - 8) {
-        for (let p of pieces) {
-          if (p.loc === newLoc) {
+      } else if(newY === this.y - 1 && newX === this.x) {
+        for (const p of pieces) {
+          if (p.x === newX && p.y === newY) {
             blocked = true;
             break;
           }
         }
         // handle removing opponent piece at a diagonal
-      } else if (newLoc === this.loc - 9 || newLoc === this.loc - 7) {
-        for (let p of pieces) {
-          if (p.loc === newLoc && p.colour !== this.colour) {
+      } else if (newX === this.x + 1 && newY === this.y - 1 || newX === this.x - 1 && newY === this.y - 1) {
+        for (const p of pieces) {
+          if ((p.x === newX && p.y === newY) && p.colour !== this.colour) {
             pieces = pieces.filter(rp => rp !== p);
             blocked = false;
             break;
@@ -122,44 +105,47 @@ class Pawn extends Piece {
       }
     }
 
-    if(!blocked) this.loc = newLoc;
+    if(!blocked) {
+      this.x = newX;
+      this.y = newY;
+    }
     return pieces;
   }
 }
 
-
 class Rook extends Piece {
-  constructor(colour: string, sp: number) {
+  constructor(colour: string, x: number, y: number) {
     super();
     this.name = 'R';
     this.colour = colour;
-    this.loc = sp;
+    this.x = x;
+    this.y = y;
   }
 
   // need to handle removing pieces still
-  movePiece(newLoc: number, pieces: Piece[]): Piece[] {
+  movePiece(newX: number, newY: number, pieces: Piece[]): Piece[] {
     let blocked = false;
     const piecesCopy = pieces;
     // moving down a column
-    if (newLoc > this.loc && newLoc % 8 === this.loc % 8) {
-      for(let i = this.loc; i <= newLoc; i += 8) {
-        for(let p of pieces) {
-          if(p.loc === i && i != this.loc) {
-            if(p.loc === newLoc && p.colour !== this.colour) {
+    if (newY > this.y && newX === this.x) {
+      for(let i = this.y; i <= newY; i++) {
+        for(const p of pieces) {
+          if ((p.y === i && p.x === this.x) && i !== this.y) {
+            if((p.x === newX && p.y === newY) && p.colour !== this.colour){
               pieces = pieces.filter(rp => rp !== p);
               break;
-            } 
+            }
             blocked = true;
             break;
           }
         }
       }
       // move up a column
-    } else if (newLoc < this.loc && newLoc % 8 === this.loc % 8) {
-      for(let i = this.loc; i >= newLoc; i -= 8) {
-        for(let p of pieces) {
-          if(p.loc === i && i != this.loc) {
-            if(p.loc === newLoc && p.colour !== this.colour) {
+    } else if (newY < this.y && newX === this.x) {
+      for(let i = this.y; i >= newY; i--) {
+        for(const p of pieces) {
+          if ((p.y === i && p.x === this.x) && i !== this.y) {
+            if((p.x === newX && p.y === newY) && p.colour !== this.colour){
               pieces = pieces.filter(rp => rp !== p);
               break;
             }
@@ -169,11 +155,11 @@ class Rook extends Piece {
         }
       }
       // move right
-    } else if (newLoc > this.loc && Math.floor((this.loc) / 8) === Math.floor((newLoc) / 8)) {
-      for(let i = this.loc; i <= newLoc; i++) {
-        for(let p of pieces) {
-          if(p.loc === i && i != this.loc) {
-            if(p.loc === newLoc && p.colour !== this.colour) {
+    } else if (newX > this.x && newY === this.y) {
+      for(let i = this.x; i <= newX; i++) {
+        for(const p of pieces) {
+          if ((p.x === i && p.y === this.y) && i !== this.x) {
+            if((p.x === newX && p.y === newY) && p.colour !== this.colour){
               pieces = pieces.filter(rp => rp !== p);
               break;
             } 
@@ -183,11 +169,11 @@ class Rook extends Piece {
         }
       }
       // move left
-    } else if (newLoc < this.loc && Math.floor((this.loc) / 8) === Math.floor((newLoc) / 8)) {
-      for(let i = this.loc; i >= newLoc; i--) {
-        for(let p of pieces) {
-          if(p.loc === i && i != this.loc) {
-            if(p.loc === newLoc && p.colour !== this.colour) {
+    } else if (newX < this.x && newY === this.y) {
+      for(let i = this.x; i >= newX; i--) {
+        for(const p of pieces) {
+          if ((p.x === i && p.y === this.y) && i !== this.x) {
+            if((p.x === newX && p.y === newY) && p.colour !== this.colour) {
               pieces = pieces.filter(rp => rp !== p);
               break;
             } 
@@ -201,7 +187,8 @@ class Rook extends Piece {
     }
 
     if(!blocked) {
-      this.loc = newLoc;
+      this.x = newX;
+      this.y = newY;
       return pieces;
     }
     return piecesCopy;
@@ -209,22 +196,24 @@ class Rook extends Piece {
 }
 
 class Bishop extends Piece {
-  constructor(colour: string, sp: number) {
+  constructor(colour: string,  x: number, y: number) {
     super();
     this.name = 'B';
     this.colour = colour;
-    this.loc = sp;
+    this.x = x;
+    this.y = y;
   }
 
-  movePiece(newLoc: number, pieces: Piece[]): Piece[] {
+  movePiece(newX: number, newY: number, pieces: Piece[]): Piece[] {
     let blocked = false;
     const piecesCopy = pieces;
+    
     // moving down right
-    if (newLoc > this.loc && (newLoc - this.loc) % 9 === 0) {
-      for(let i = this.loc; i <= newLoc; i += 9) {
-        for(let p of pieces) {
-          if(p.loc === i && i != this.loc) {
-            if(p.loc === newLoc && p.colour !== this.colour) {
+    if (newX > this.x && newY > this.y) {
+      for(let i = this.y; i <= newY; i++) {
+        for(const p of pieces) {
+          if((p.y === i && p.x === this.x + (i - this.y)) && i !== this.y) {
+            if((p.x === newX && p.y === newY) && p.colour !== this.colour) {
               pieces = pieces.filter(rp => rp !== p);
               break;
             } 
@@ -234,11 +223,11 @@ class Bishop extends Piece {
         }
       }
       // move up right
-    } else if (newLoc < this.loc && (this.loc - newLoc) % 7 === 0) {
-      for(let i = this.loc; i >= newLoc; i -= 7) {
-        for(let p of pieces) {
-          if(p.loc === i && i != this.loc) {
-            if(p.loc === newLoc && p.colour !== this.colour) {
+    } else if (newX > this.x && newY < this.y) {
+      for(let i = this.y; i >= newY; i--) {
+        for(const p of pieces) {
+          if((p.y === i && p.x === this.x + (this.y - i)) && i !== this.y) {
+            if((p.x === newX && p.y === newY) && p.colour !== this.colour) {
               pieces = pieces.filter(rp => rp !== p);
               break;
             }
@@ -248,11 +237,11 @@ class Bishop extends Piece {
         }
       }
       // move down left
-    } else if (newLoc > this.loc && (newLoc - this.loc) % 7 === 0){
-      for(let i = this.loc; i <= newLoc; i += 7) {
-        for(let p of pieces) {
-          if(p.loc === i && i != this.loc) {
-            if(p.loc === newLoc && p.colour !== this.colour) {
+    } else if (newX < this.x && newY > this.y){
+      for(let i = this.y; i <= newY; i++) {
+        for(const p of pieces) {
+          if((p.y === i && p.x === this.x - (i - this.y)) && i !== this.y) {
+            if((p.x === newX && p.y === newY) && p.colour !== this.colour) {
               pieces = pieces.filter(rp => rp !== p);
               break;
             }
@@ -262,11 +251,11 @@ class Bishop extends Piece {
         }
       }
       // move up left
-    } else if (newLoc < this.loc && (this.loc - newLoc) % 9 === 0) {
-      for(let i = this.loc; i >= newLoc; i -= 9) {
-        for(let p of pieces) {
-          if(p.loc === i && i != this.loc) {
-            if(p.loc === newLoc && p.colour !== this.colour) {
+    } else if (newX < this.x && newY < this.y) {
+      for(let i = this.y; i >= newY; i--) {
+        for(const p of pieces) {
+          if((p.y === i && p.x === this.x - (this.y - i)) && i !== this.y) {
+            if((p.x === newX && p.y === newY) && p.colour !== this.colour) {
               pieces = pieces.filter(rp => rp !== p);
               break;
             }
@@ -280,7 +269,8 @@ class Bishop extends Piece {
     }
 
     if(!blocked) {
-      this.loc = newLoc;
+      this.x = newX;
+      this.y = newY;
       return pieces;
     }
     return piecesCopy;
@@ -288,22 +278,22 @@ class Bishop extends Piece {
 }
 
 class Knight extends Piece {
-  constructor(colour: string, sp: number) {
+  constructor(colour: string, x: number, y: number) {
     super();
     this.name = 'H';
     this.colour = colour;
-    this.loc = sp;
+    this.x = x;
+    this.y = y;
   }
 
-  movePiece(newLoc: number, pieces: Piece[]): Piece[] {
-    const absDiff = Math.abs(newLoc - this.loc);
+  movePiece(newX: number, newY: number, pieces: Piece[]): Piece[] {
     let blocked = false;
-    if(absDiff === 6 || absDiff === 10 || absDiff === 15 || absDiff === 17) {
-      for(let p of pieces) {
-        if(p.loc === newLoc && p.colour !== this.colour) {
+    if((Math.abs(newX - this.x) === 2 && Math.abs(newY - this.y) === 1) || (Math.abs(newY - this.y) === 2 && Math.abs(newX - this.x) === 1)) {
+      for(const p of pieces) {
+        if((p.x === newX && p.y === newY) && p.colour !== this.colour) {
           pieces = pieces.filter(rp => rp !== p);
           break;
-        } else if(p.loc === newLoc && p.colour === this.colour) {
+        } else if((p.x === newX && p.y === newY) && p.colour === this.colour) {
           blocked = true;
           break;
         }
@@ -312,43 +302,33 @@ class Knight extends Piece {
       blocked = true;
     }
 
-    if(!blocked) this.loc = newLoc;
+    if(!blocked) {
+      this.x = newX;
+      this.y = newY;
+    }
     return pieces;
   }
 }
 
 class Queen extends Piece {
-  constructor(colour: string, sp: number) {
+  constructor(colour: string, x: number, y: number) {
     super();
     this.name = 'Q';
     this.colour = colour;
-    this.loc = sp;
+    this.x = x;
+    this.y = y;
   }
 
-  movePiece(newLoc: number, pieces: Piece[]): Piece[] {
+  movePiece(newX: number, newY: number, pieces: Piece[]): Piece[] {
     let blocked = false;
     const piecesCopy = pieces;
 
-    // move up left
-    if (newLoc > this.loc && (newLoc - this.loc) % 9 === 0) {
-      for(let i = this.loc; i <= newLoc; i += 9) {
-        for(let p of pieces) {
-          if(p.loc === i && i != this.loc) {
-            if(p.loc === newLoc && p.colour !== this.colour) {
-              pieces = pieces.filter(rp => rp !== p);
-              break;
-            } 
-            blocked = true;
-            break;
-          }
-        }
-      }
-      // move up right
-    } else if (newLoc < this.loc && (this.loc - newLoc) % 7 === 0) {
-      for(let i = this.loc; i >= newLoc; i -= 7) {
-        for(let p of pieces) {
-          if(p.loc === i && i != this.loc) {
-            if(p.loc === newLoc && p.colour !== this.colour) {
+    // move down
+    if (newY > this.y && newX === this.x) {
+      for(let i = this.y; i <= newY; i++) {
+        for(const p of pieces) {
+          if ((p.y === i && p.x === this.x) && i !== this.y) {
+            if((p.x === newX && p.y === newY) && p.colour !== this.colour){
               pieces = pieces.filter(rp => rp !== p);
               break;
             }
@@ -357,53 +337,12 @@ class Queen extends Piece {
           }
         }
       }
-      // move down left
-    } else if (newLoc > this.loc && (newLoc - this.loc) % 7 === 0){
-      for(let i = this.loc; i <= newLoc; i += 7) {
-        for(let p of pieces) {
-          if(p.loc === i && i != this.loc) {
-            if(p.loc === newLoc && p.colour !== this.colour) {
-              pieces = pieces.filter(rp => rp !== p);
-              break;
-            }
-            blocked = true;
-            break;
-          }
-        }
-      }
-      // move up left
-    } else if (newLoc < this.loc && (this.loc - newLoc) % 9 === 0) {
-      for(let i = this.loc; i >= newLoc; i -= 9) {
-        for(let p of pieces) {
-          if(p.loc === i && i != this.loc) {
-            if(p.loc === newLoc && p.colour !== this.colour) {
-              pieces = pieces.filter(rp => rp !== p);
-              break;
-            }
-            blocked = true;
-            break;
-          }
-        }
-      }
-    } else if (newLoc > this.loc && newLoc % 8 === this.loc % 8) {
-      for(let i = this.loc; i <= newLoc; i += 8) {
-        for(let p of pieces) {
-          if(p.loc === i && i != this.loc) {
-            if(p.loc === newLoc && p.colour !== this.colour) {
-              pieces = pieces.filter(rp => rp !== p);
-              break;
-            } 
-            blocked = true;
-            break;
-          }
-        }
-      }
-      // move up a column
-    } else if (newLoc < this.loc && newLoc % 8 === this.loc % 8) {
-      for(let i = this.loc; i >= newLoc; i -= 8) {
-        for(let p of pieces) {
-          if(p.loc === i && i != this.loc) {
-            if(p.loc === newLoc && p.colour !== this.colour) {
+      // move up
+    } else if (newY < this.y && newX === this.x) {
+      for(let i = this.y; i >= newY; i--) {
+        for(const p of pieces) {
+          if ((p.y === i && p.x === this.x) && i !== this.y) {
+            if((p.x === newX && p.y === newY) && p.colour !== this.colour){
               pieces = pieces.filter(rp => rp !== p);
               break;
             }
@@ -413,11 +352,11 @@ class Queen extends Piece {
         }
       }
       // move right
-    } else if (newLoc > this.loc && Math.floor((this.loc) / 8) === Math.floor((newLoc) / 8)) {
-      for(let i = this.loc; i <= newLoc; i++) {
-        for(let p of pieces) {
-          if(p.loc === i && i != this.loc) {
-            if(p.loc === newLoc && p.colour !== this.colour) {
+    } else if (newX > this.x && newY === this.y) {
+      for(let i = this.x; i <= newX; i++) {
+        for(const p of pieces) {
+          if ((p.x === i && p.y === this.y) && i !== this.x) {
+            if((p.x === newX && p.y === newY) && p.colour !== this.colour){
               pieces = pieces.filter(rp => rp !== p);
               break;
             } 
@@ -427,14 +366,70 @@ class Queen extends Piece {
         }
       }
       // move left
-    } else if (newLoc < this.loc && Math.floor((this.loc) / 8) === Math.floor((newLoc) / 8)) {
-      for(let i = this.loc; i >= newLoc; i--) {
-        for(let p of pieces) {
-          if(p.loc === i && i != this.loc) {
-            if(p.loc === newLoc && p.colour !== this.colour) {
+    } else if (newX < this.x && newY === this.y) {
+      for(let i = this.x; i >= newX; i--) {
+        for(const p of pieces) {
+          if ((p.x === i && p.y === this.y) && i !== this.x) {
+            if((p.x === newX && p.y === newY) && p.colour !== this.colour) {
               pieces = pieces.filter(rp => rp !== p);
               break;
             } 
+            blocked = true;
+            break;
+          }
+        }
+      }
+      // move down right
+    } else if (newX > this.x && newY > this.y) {
+      for(let i = this.y; i <= newY; i++) {
+        for(const p of pieces) {
+          if((p.y === i && p.x === this.x + (i - this.y)) && i !== this.y) {
+            if((p.x === newX && p.y === newY) && p.colour !== this.colour) {
+              pieces = pieces.filter(rp => rp !== p);
+              break;
+            } 
+            blocked = true;
+            break;
+          }
+        }
+      }
+      // move up right
+    } else if (newX > this.x && newY < this.y) {
+      for(let i = this.y; i >= newY; i--) {
+        for(const p of pieces) {
+          if((p.y === i && p.x === this.x + (this.y - i)) && i !== this.y) {
+            if((p.x === newX && p.y === newY) && p.colour !== this.colour) {
+              pieces = pieces.filter(rp => rp !== p);
+              break;
+            }
+            blocked = true;
+            break;
+          }
+        }
+      }
+      // move down left
+    } else if (newX < this.x && newY > this.y){
+      for(let i = this.y; i <= newY; i++) {
+        for(const p of pieces) {
+          if((p.y === i && p.x === this.x - (i - this.y)) && i !== this.y) {
+            if((p.x === newX && p.y === newY) && p.colour !== this.colour) {
+              pieces = pieces.filter(rp => rp !== p);
+              break;
+            }
+            blocked = true;
+            break;
+          }
+        }
+      }
+      // move up left
+    } else if (newX < this.x && newY < this.y) {
+      for(let i = this.y; i >= newY; i--) {
+        for(const p of pieces) {
+          if((p.y === i && p.x === this.x - (this.y - i)) && i !== this.y) {
+            if((p.x === newX && p.y === newY) && p.colour !== this.colour) {
+              pieces = pieces.filter(rp => rp !== p);
+              break;
+            }
             blocked = true;
             break;
           }
@@ -445,7 +440,8 @@ class Queen extends Piece {
     }
 
     if(!blocked) {
-      this.loc = newLoc;
+      this.x = newX;
+      this.y = newY;
       return pieces;
     }
     return piecesCopy;
@@ -453,23 +449,23 @@ class Queen extends Piece {
 }
 
 class King extends Piece {
-  constructor(colour: string, sp: number) {
+  constructor(colour: string, x: number, y: number) {
     super();
     this.name = 'K';
     this.colour = colour;
-    this.loc = sp;
+    this.x = x;
+    this.y = y;
     this.check = false;
   }
 
-  movePiece(newLoc: number, pieces: Piece[]): Piece[] {
+  movePiece(newX: number, newY: number, pieces: Piece[]): Piece[] {
     let blocked;
-    const absDiff = Math.abs(newLoc - this.loc);
-    if(absDiff === 1 || absDiff === 7 || absDiff === 8 || absDiff === 9) {
-      for(let p of pieces) {
-        if(p.loc === newLoc && p.colour !== this.colour) {
+    if(Math.abs(this.x - newX) < 2 && Math.abs(this.y - newY) < 2) {
+      for(const p of pieces) {
+        if((p.x === newX && p.y === newY) && p.colour !== this.colour) {
           pieces = pieces.filter(rp => rp !== p);
           break;
-        } else if(p.loc === newLoc && p.colour === this.colour) {
+        } else if((p.x === newX && p.y === newY) && p.colour === this.colour) {
           blocked = true;
           break;
         }
@@ -478,31 +474,32 @@ class King extends Piece {
       blocked = true;
     }
 
-    if (!blocked) this.loc = newLoc;
+    if (!blocked) {
+      this.x = newX;
+      this.y = newY;
+    }
     return pieces;
   }
 
   // add checkmate by calling this function on all moves for a king each turn
-  inCheck(pieces: Piece[], newLoc: number): boolean {
-    const nl = newLoc > -1 ? newLoc : this.loc;
-
+  inCheck(pieces: Piece[], newX: number, newY: number): boolean {
     // check for pawns
-    let pawns = pieces.filter(p => p.colour !== this.colour && p.name === 'P');
+    const pawns = pieces.filter(p => p.colour !== this.colour && p.name === 'P');
     for(let i = 0; i < pawns.length; i++) {
-      let p = pawns[i];
-      if(nl + 9 === p.loc && p.colour === 'black') {
+      const p = pawns[i];
+      if((newX + 1 === p.x && newY + 1 === p.y) && p.colour === 'black') {
         this.check = true;
         console.log('pawn');
         return true;
-      } else if (nl + 7 === p.loc && p.colour === 'black') {
+      } else if ((newX - 1 === p.x && newY + 1 === p.y) && p.colour === 'black') {
         this.check = true;
         console.log('pawn');
         return true;
-      } else if (nl - 7 === p.loc && p.colour === 'white') {
+      } else if ((newX - 1 === p.x && newY - 1 === p.y) && p.colour === 'white') {
         this.check = true;
         console.log('pawn');
         return true;
-      } else if (nl - 9 === p.loc && p.colour === 'white') {
+      } else if ((newX + 1 === p.x && newY - 1 === p.y) && p.colour === 'white') {
         this.check = true;
         console.log('pawn');
         return true;
@@ -511,15 +508,16 @@ class King extends Piece {
 
     // maybe expand this to handle vertical as well
     // horizontal
-    let hvPieces = pieces.filter(p => Math.floor(p.loc / 8) === Math.floor(nl / 8) || p.loc % 8 === nl % 8);
-    let threats = hvPieces.filter(p => p.colour !== this.colour && (p.name === 'R' || p.name === 'Q'));
+    /*
+    const hvPieces = pieces.filter(p => Math.floor(p.loc / 8) === Math.floor(nl / 8) || p.loc % 8 === nl % 8);
+    const threats = hvPieces.filter(p => p.colour !== this.colour && (p.name === 'R' || p.name === 'Q'));
 
     if (threats.length > 0) {
       for(let i = 0; i < threats.length; i++) {
-        let t = threats[i];
+        const t = threats[i];
         // check from left
         if (t.loc < nl && t.loc % 8 !== nl % 8) {
-          let buffers = hvPieces.filter(p => p.loc < nl && p.loc > t.loc && p !== this);
+          const buffers = hvPieces.filter(p => p.loc < nl && p.loc > t.loc && p !== this);
           if (buffers.length === 0 && threats.length > 0) {
             console.log('left');
             this.check = true;
@@ -527,7 +525,7 @@ class King extends Piece {
           }
           // check from right
         } else if (t.loc > nl && t.loc % 8 !== nl % 8) {
-          let buffers = hvPieces.filter(p => p.loc > nl && p.loc < t.loc && p !== this);
+          const buffers = hvPieces.filter(p => p.loc > nl && p.loc < t.loc && p !== this);
           if (buffers.length === 0 && threats.length > 0) {
             console.log('right');
             this.check = true;
@@ -536,7 +534,7 @@ class King extends Piece {
         }
         // check from above
         if (t.loc < nl && t.loc % 8 === nl % 8) {
-          let buffers = hvPieces.filter(p => p.loc % 8 === nl % 8 && p.loc < nl && p.loc > t.loc && p !== this);
+          const buffers = hvPieces.filter(p => p.loc % 8 === nl % 8 && p.loc < nl && p.loc > t.loc && p !== this);
           if (buffers.length === 0 && threats.length > 0) {
             console.log('above');
             this.check = true;
@@ -544,7 +542,7 @@ class King extends Piece {
           }
           // check from below
         } else if (t.loc > nl && t.loc % 8 === nl % 8) {
-          let buffers = hvPieces.filter(p => p.loc % 8 === nl % 8 && p.loc > nl && p.loc < t.loc && p !== this);
+          const buffers = hvPieces.filter(p => p.loc % 8 === nl % 8 && p.loc > nl && p.loc < t.loc && p !== this);
           if (buffers.length === 0 && threats.length > 0) {
             console.log('below');
             this.check = true;
@@ -553,6 +551,7 @@ class King extends Piece {
         }
       }
     }
+    */
 
     this.check = false;
     return false;

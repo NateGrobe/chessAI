@@ -1,6 +1,7 @@
 var Tile = (function () {
-    function Tile(index) {
-        this.index = index;
+    function Tile(x, y) {
+        this.x = x;
+        this.y = y;
         this.active = false;
     }
     Tile.prototype.setActive = function () {
@@ -14,8 +15,12 @@ var Tile = (function () {
 var Board = (function () {
     function Board() {
         this.tiles = [];
-        for (var i = 0; i < 64; i++) {
-            this.tiles.push(new Tile(i));
+        for (var i = 0; i < 8; i++) {
+            var row = [];
+            for (var j = 0; j < 8; j++) {
+                row.push(new Tile(j, i));
+            }
+            this.tiles.push(row);
         }
     }
     Board.prototype.draw = function (pieces, whiteTurn) {
@@ -23,11 +28,15 @@ var Board = (function () {
             var _loop_2 = function (j) {
                 var x = 125 * i;
                 var y = 125 * j;
-                var colour = (i - j) % 2 == 0 ? color(255, 255, 255) : color(0, 0, 0);
-                var activePiece = pieces.filter(function (p) { return p.loc === i + j * 8; })[0];
-                if (this_1.tiles[i + j * 8].active && (activePiece.colour === 'white') === whiteTurn) {
-                    colour = (i - j) % 2 == 0 ? color(200, 200, 200) : color(55, 55, 55);
+                var colour = (i - j) % 2 === 0 ? color(240, 240, 240) : color(15, 15, 15);
+                var activePiece = pieces.filter(function (p) { return p.x === j && p.y === i; })[0];
+                if (activePiece) {
+                    if (this_1.tiles[j][i].active && (activePiece.colour === 'white') === whiteTurn) {
+                        colour = (i - j) % 2 === 0 ? color(200, 200, 200) : color(55, 55, 55);
+                    }
                 }
+                stroke(0, 0, 0);
+                strokeWeight(1);
                 fill(colour);
                 square(x, y, 125);
             };
@@ -59,74 +68,58 @@ var Piece = (function () {
     function Piece() {
     }
     Piece.prototype.draw = function () {
-        var coords = this.convertCoord(this.loc);
+        var coords = [this.x * 125 + 50, this.y * 125 + 85];
         fill(this.colorToString(this.colour));
         strokeWeight(2);
         this.colour === 'white' ? stroke(0) : stroke(255);
         textSize(50);
         text(this.name, coords[0], coords[1]);
     };
-    Piece.prototype.convertCoord = function (coord) {
-        var x;
-        var y;
-        if (coord === 0) {
-            x = coord;
-            y = Math.floor((coord + 1) / 8);
-        }
-        else if ((coord + 1) % 8 === 0) {
-            x = 7;
-            y = Math.floor((coord + 1) / 8) - 1;
-        }
-        else {
-            x = ((coord + 1) % 8) - 1;
-            y = Math.floor((coord + 1) / 8);
-        }
-        return [x * 125 + 50, y * 125 + 125 - 45];
-    };
-    Piece.prototype.inCheck = function (pieces, newLoc) {
+    Piece.prototype.inCheck = function (pieces, newX, newY) {
         return false;
     };
     Piece.prototype.colorToString = function (colour) {
         return colour === 'black' ? color(0, 0, 0) : color(255, 255, 255);
     };
-    Piece.prototype.movePiece = function (newLoc, pieces) {
+    Piece.prototype.movePiece = function (newX, newY, pieces) {
         return pieces;
     };
     return Piece;
 }());
 var Pawn = (function (_super) {
     __extends(Pawn, _super);
-    function Pawn(colour, sp) {
+    function Pawn(colour, x, y) {
         var _this = _super.call(this) || this;
         _this.name = 'P';
         _this.colour = colour;
-        _this.loc = sp;
+        _this.x = x;
+        _this.y = y;
         return _this;
     }
-    Pawn.prototype.movePiece = function (newLoc, pieces) {
+    Pawn.prototype.movePiece = function (newX, newY, pieces) {
         var blocked = false;
         if (this.colour === 'white') {
-            if (this.loc >= 7 && this.loc < 16 && (newLoc === this.loc + 8 || newLoc === this.loc + 16)) {
+            if (this.y === 1 && newX === this.x && (newY === this.y + 1 || newY === this.y + 2)) {
                 for (var _i = 0, pieces_1 = pieces; _i < pieces_1.length; _i++) {
                     var p = pieces_1[_i];
-                    if (p.loc === this.loc + 8 || p.loc === newLoc) {
+                    if ((p.y === this.y + 1 && p.x === this.x) || (p.x === newX && p.y === newY)) {
                         blocked = true;
                         break;
                     }
                 }
             }
-            else if (newLoc === this.loc + 8) {
+            else if (newY === this.y + 1 && newX === this.x) {
                 for (var _a = 0, pieces_2 = pieces; _a < pieces_2.length; _a++) {
                     var p = pieces_2[_a];
-                    if (p.loc === newLoc) {
+                    if (p.x === newX && p.y === newY) {
                         blocked = true;
                         break;
                     }
                 }
             }
-            else if (newLoc === this.loc + 9 || newLoc === this.loc + 7) {
+            else if (newX === this.x + 1 && newY === this.y + 1 || newX === this.x - 1 && newY === this.y + 1) {
                 var _loop_3 = function (p) {
-                    if (p.loc === newLoc && p.colour !== this_2.colour) {
+                    if ((p.x === newX && p.y === newY) && p.colour !== this_2.colour) {
                         pieces = pieces.filter(function (rp) { return rp !== p; });
                         blocked = false;
                         return "break";
@@ -146,27 +139,27 @@ var Pawn = (function (_super) {
             }
         }
         else {
-            if (this.loc >= 47 && this.loc < 56 && (newLoc === this.loc - 8 || newLoc === this.loc - 16)) {
+            if (this.y === 6 && newX === this.x && (newY === this.y - 1 || newY === this.y - 2)) {
                 for (var _c = 0, pieces_4 = pieces; _c < pieces_4.length; _c++) {
                     var p = pieces_4[_c];
-                    if (p.loc === this.loc - 8 || p.loc === newLoc) {
+                    if ((p.y === this.y - 1 && p.x === this.x) || (p.x === newX && p.y === newY)) {
                         blocked = true;
                         break;
                     }
                 }
             }
-            else if (newLoc === this.loc - 8) {
+            else if (newY === this.y - 1 && newX === this.x) {
                 for (var _d = 0, pieces_5 = pieces; _d < pieces_5.length; _d++) {
                     var p = pieces_5[_d];
-                    if (p.loc === newLoc) {
+                    if (p.x === newX && p.y === newY) {
                         blocked = true;
                         break;
                     }
                 }
             }
-            else if (newLoc === this.loc - 9 || newLoc === this.loc - 7) {
+            else if (newX === this.x + 1 && newY === this.y - 1 || newX === this.x - 1 && newY === this.y - 1) {
                 var _loop_4 = function (p) {
-                    if (p.loc === newLoc && p.colour !== this_3.colour) {
+                    if ((p.x === newX && p.y === newY) && p.colour !== this_3.colour) {
                         pieces = pieces.filter(function (rp) { return rp !== p; });
                         blocked = false;
                         return "break";
@@ -185,29 +178,32 @@ var Pawn = (function (_super) {
                 blocked = true;
             }
         }
-        if (!blocked)
-            this.loc = newLoc;
+        if (!blocked) {
+            this.x = newX;
+            this.y = newY;
+        }
         return pieces;
     };
     return Pawn;
 }(Piece));
 var Rook = (function (_super) {
     __extends(Rook, _super);
-    function Rook(colour, sp) {
+    function Rook(colour, x, y) {
         var _this = _super.call(this) || this;
         _this.name = 'R';
         _this.colour = colour;
-        _this.loc = sp;
+        _this.x = x;
+        _this.y = y;
         return _this;
     }
-    Rook.prototype.movePiece = function (newLoc, pieces) {
+    Rook.prototype.movePiece = function (newX, newY, pieces) {
         var blocked = false;
         var piecesCopy = pieces;
-        if (newLoc > this.loc && newLoc % 8 === this.loc % 8) {
-            for (var i = this.loc; i <= newLoc; i += 8) {
+        if (newY > this.y && newX === this.x) {
+            for (var i = this.y; i <= newY; i++) {
                 var _loop_5 = function (p) {
-                    if (p.loc === i && i != this_4.loc) {
-                        if (p.loc === newLoc && p.colour !== this_4.colour) {
+                    if ((p.y === i && p.x === this_4.x) && i !== this_4.y) {
+                        if ((p.x === newX && p.y === newY) && p.colour !== this_4.colour) {
                             pieces = pieces.filter(function (rp) { return rp !== p; });
                             return "break";
                         }
@@ -224,11 +220,11 @@ var Rook = (function (_super) {
                 }
             }
         }
-        else if (newLoc < this.loc && newLoc % 8 === this.loc % 8) {
-            for (var i = this.loc; i >= newLoc; i -= 8) {
+        else if (newY < this.y && newX === this.x) {
+            for (var i = this.y; i >= newY; i--) {
                 var _loop_6 = function (p) {
-                    if (p.loc === i && i != this_5.loc) {
-                        if (p.loc === newLoc && p.colour !== this_5.colour) {
+                    if ((p.y === i && p.x === this_5.x) && i !== this_5.y) {
+                        if ((p.x === newX && p.y === newY) && p.colour !== this_5.colour) {
                             pieces = pieces.filter(function (rp) { return rp !== p; });
                             return "break";
                         }
@@ -245,11 +241,11 @@ var Rook = (function (_super) {
                 }
             }
         }
-        else if (newLoc > this.loc && Math.floor((this.loc) / 8) === Math.floor((newLoc) / 8)) {
-            for (var i = this.loc; i <= newLoc; i++) {
+        else if (newX > this.x && newY === this.y) {
+            for (var i = this.x; i <= newX; i++) {
                 var _loop_7 = function (p) {
-                    if (p.loc === i && i != this_6.loc) {
-                        if (p.loc === newLoc && p.colour !== this_6.colour) {
+                    if ((p.x === i && p.y === this_6.y) && i !== this_6.x) {
+                        if ((p.x === newX && p.y === newY) && p.colour !== this_6.colour) {
                             pieces = pieces.filter(function (rp) { return rp !== p; });
                             return "break";
                         }
@@ -266,11 +262,11 @@ var Rook = (function (_super) {
                 }
             }
         }
-        else if (newLoc < this.loc && Math.floor((this.loc) / 8) === Math.floor((newLoc) / 8)) {
-            for (var i = this.loc; i >= newLoc; i--) {
+        else if (newX < this.x && newY === this.y) {
+            for (var i = this.x; i >= newX; i--) {
                 var _loop_8 = function (p) {
-                    if (p.loc === i && i != this_7.loc) {
-                        if (p.loc === newLoc && p.colour !== this_7.colour) {
+                    if ((p.x === i && p.y === this_7.y) && i !== this_7.x) {
+                        if ((p.x === newX && p.y === newY) && p.colour !== this_7.colour) {
                             pieces = pieces.filter(function (rp) { return rp !== p; });
                             return "break";
                         }
@@ -291,7 +287,8 @@ var Rook = (function (_super) {
             blocked = true;
         }
         if (!blocked) {
-            this.loc = newLoc;
+            this.x = newX;
+            this.y = newY;
             return pieces;
         }
         return piecesCopy;
@@ -300,21 +297,22 @@ var Rook = (function (_super) {
 }(Piece));
 var Bishop = (function (_super) {
     __extends(Bishop, _super);
-    function Bishop(colour, sp) {
+    function Bishop(colour, x, y) {
         var _this = _super.call(this) || this;
         _this.name = 'B';
         _this.colour = colour;
-        _this.loc = sp;
+        _this.x = x;
+        _this.y = y;
         return _this;
     }
-    Bishop.prototype.movePiece = function (newLoc, pieces) {
+    Bishop.prototype.movePiece = function (newX, newY, pieces) {
         var blocked = false;
         var piecesCopy = pieces;
-        if (newLoc > this.loc && (newLoc - this.loc) % 9 === 0) {
-            for (var i = this.loc; i <= newLoc; i += 9) {
+        if (newX > this.x && newY > this.y) {
+            for (var i = this.y; i <= newY; i++) {
                 var _loop_9 = function (p) {
-                    if (p.loc === i && i != this_8.loc) {
-                        if (p.loc === newLoc && p.colour !== this_8.colour) {
+                    if ((p.y === i && p.x === this_8.x + (i - this_8.y)) && i !== this_8.y) {
+                        if ((p.x === newX && p.y === newY) && p.colour !== this_8.colour) {
                             pieces = pieces.filter(function (rp) { return rp !== p; });
                             return "break";
                         }
@@ -331,11 +329,11 @@ var Bishop = (function (_super) {
                 }
             }
         }
-        else if (newLoc < this.loc && (this.loc - newLoc) % 7 === 0) {
-            for (var i = this.loc; i >= newLoc; i -= 7) {
+        else if (newX > this.x && newY < this.y) {
+            for (var i = this.y; i >= newY; i--) {
                 var _loop_10 = function (p) {
-                    if (p.loc === i && i != this_9.loc) {
-                        if (p.loc === newLoc && p.colour !== this_9.colour) {
+                    if ((p.y === i && p.x === this_9.x + (this_9.y - i)) && i !== this_9.y) {
+                        if ((p.x === newX && p.y === newY) && p.colour !== this_9.colour) {
                             pieces = pieces.filter(function (rp) { return rp !== p; });
                             return "break";
                         }
@@ -352,11 +350,11 @@ var Bishop = (function (_super) {
                 }
             }
         }
-        else if (newLoc > this.loc && (newLoc - this.loc) % 7 === 0) {
-            for (var i = this.loc; i <= newLoc; i += 7) {
+        else if (newX < this.x && newY > this.y) {
+            for (var i = this.y; i <= newY; i++) {
                 var _loop_11 = function (p) {
-                    if (p.loc === i && i != this_10.loc) {
-                        if (p.loc === newLoc && p.colour !== this_10.colour) {
+                    if ((p.y === i && p.x === this_10.x - (i - this_10.y)) && i !== this_10.y) {
+                        if ((p.x === newX && p.y === newY) && p.colour !== this_10.colour) {
                             pieces = pieces.filter(function (rp) { return rp !== p; });
                             return "break";
                         }
@@ -373,11 +371,11 @@ var Bishop = (function (_super) {
                 }
             }
         }
-        else if (newLoc < this.loc && (this.loc - newLoc) % 9 === 0) {
-            for (var i = this.loc; i >= newLoc; i -= 9) {
+        else if (newX < this.x && newY < this.y) {
+            for (var i = this.y; i >= newY; i--) {
                 var _loop_12 = function (p) {
-                    if (p.loc === i && i != this_11.loc) {
-                        if (p.loc === newLoc && p.colour !== this_11.colour) {
+                    if ((p.y === i && p.x === this_11.x - (this_11.y - i)) && i !== this_11.y) {
+                        if ((p.x === newX && p.y === newY) && p.colour !== this_11.colour) {
                             pieces = pieces.filter(function (rp) { return rp !== p; });
                             return "break";
                         }
@@ -398,7 +396,8 @@ var Bishop = (function (_super) {
             blocked = true;
         }
         if (!blocked) {
-            this.loc = newLoc;
+            this.x = newX;
+            this.y = newY;
             return pieces;
         }
         return piecesCopy;
@@ -407,23 +406,23 @@ var Bishop = (function (_super) {
 }(Piece));
 var Knight = (function (_super) {
     __extends(Knight, _super);
-    function Knight(colour, sp) {
+    function Knight(colour, x, y) {
         var _this = _super.call(this) || this;
         _this.name = 'H';
         _this.colour = colour;
-        _this.loc = sp;
+        _this.x = x;
+        _this.y = y;
         return _this;
     }
-    Knight.prototype.movePiece = function (newLoc, pieces) {
-        var absDiff = Math.abs(newLoc - this.loc);
+    Knight.prototype.movePiece = function (newX, newY, pieces) {
         var blocked = false;
-        if (absDiff === 6 || absDiff === 10 || absDiff === 15 || absDiff === 17) {
+        if ((Math.abs(newX - this.x) === 2 && Math.abs(newY - this.y) === 1) || (Math.abs(newY - this.y) === 2 && Math.abs(newX - this.x) === 1)) {
             var _loop_13 = function (p) {
-                if (p.loc === newLoc && p.colour !== this_12.colour) {
+                if ((p.x === newX && p.y === newY) && p.colour !== this_12.colour) {
                     pieces = pieces.filter(function (rp) { return rp !== p; });
                     return "break";
                 }
-                else if (p.loc === newLoc && p.colour === this_12.colour) {
+                else if ((p.x === newX && p.y === newY) && p.colour === this_12.colour) {
                     blocked = true;
                     return "break";
                 }
@@ -439,29 +438,32 @@ var Knight = (function (_super) {
         else {
             blocked = true;
         }
-        if (!blocked)
-            this.loc = newLoc;
+        if (!blocked) {
+            this.x = newX;
+            this.y = newY;
+        }
         return pieces;
     };
     return Knight;
 }(Piece));
 var Queen = (function (_super) {
     __extends(Queen, _super);
-    function Queen(colour, sp) {
+    function Queen(colour, x, y) {
         var _this = _super.call(this) || this;
         _this.name = 'Q';
         _this.colour = colour;
-        _this.loc = sp;
+        _this.x = x;
+        _this.y = y;
         return _this;
     }
-    Queen.prototype.movePiece = function (newLoc, pieces) {
+    Queen.prototype.movePiece = function (newX, newY, pieces) {
         var blocked = false;
         var piecesCopy = pieces;
-        if (newLoc > this.loc && (newLoc - this.loc) % 9 === 0) {
-            for (var i = this.loc; i <= newLoc; i += 9) {
+        if (newY > this.y && newX === this.x) {
+            for (var i = this.y; i <= newY; i++) {
                 var _loop_14 = function (p) {
-                    if (p.loc === i && i != this_13.loc) {
-                        if (p.loc === newLoc && p.colour !== this_13.colour) {
+                    if ((p.y === i && p.x === this_13.x) && i !== this_13.y) {
+                        if ((p.x === newX && p.y === newY) && p.colour !== this_13.colour) {
                             pieces = pieces.filter(function (rp) { return rp !== p; });
                             return "break";
                         }
@@ -478,11 +480,11 @@ var Queen = (function (_super) {
                 }
             }
         }
-        else if (newLoc < this.loc && (this.loc - newLoc) % 7 === 0) {
-            for (var i = this.loc; i >= newLoc; i -= 7) {
+        else if (newY < this.y && newX === this.x) {
+            for (var i = this.y; i >= newY; i--) {
                 var _loop_15 = function (p) {
-                    if (p.loc === i && i != this_14.loc) {
-                        if (p.loc === newLoc && p.colour !== this_14.colour) {
+                    if ((p.y === i && p.x === this_14.x) && i !== this_14.y) {
+                        if ((p.x === newX && p.y === newY) && p.colour !== this_14.colour) {
                             pieces = pieces.filter(function (rp) { return rp !== p; });
                             return "break";
                         }
@@ -499,11 +501,11 @@ var Queen = (function (_super) {
                 }
             }
         }
-        else if (newLoc > this.loc && (newLoc - this.loc) % 7 === 0) {
-            for (var i = this.loc; i <= newLoc; i += 7) {
+        else if (newX > this.x && newY === this.y) {
+            for (var i = this.x; i <= newX; i++) {
                 var _loop_16 = function (p) {
-                    if (p.loc === i && i != this_15.loc) {
-                        if (p.loc === newLoc && p.colour !== this_15.colour) {
+                    if ((p.x === i && p.y === this_15.y) && i !== this_15.x) {
+                        if ((p.x === newX && p.y === newY) && p.colour !== this_15.colour) {
                             pieces = pieces.filter(function (rp) { return rp !== p; });
                             return "break";
                         }
@@ -520,11 +522,11 @@ var Queen = (function (_super) {
                 }
             }
         }
-        else if (newLoc < this.loc && (this.loc - newLoc) % 9 === 0) {
-            for (var i = this.loc; i >= newLoc; i -= 9) {
+        else if (newX < this.x && newY === this.y) {
+            for (var i = this.x; i >= newX; i--) {
                 var _loop_17 = function (p) {
-                    if (p.loc === i && i != this_16.loc) {
-                        if (p.loc === newLoc && p.colour !== this_16.colour) {
+                    if ((p.x === i && p.y === this_16.y) && i !== this_16.x) {
+                        if ((p.x === newX && p.y === newY) && p.colour !== this_16.colour) {
                             pieces = pieces.filter(function (rp) { return rp !== p; });
                             return "break";
                         }
@@ -541,11 +543,11 @@ var Queen = (function (_super) {
                 }
             }
         }
-        else if (newLoc > this.loc && newLoc % 8 === this.loc % 8) {
-            for (var i = this.loc; i <= newLoc; i += 8) {
+        else if (newX > this.x && newY > this.y) {
+            for (var i = this.y; i <= newY; i++) {
                 var _loop_18 = function (p) {
-                    if (p.loc === i && i != this_17.loc) {
-                        if (p.loc === newLoc && p.colour !== this_17.colour) {
+                    if ((p.y === i && p.x === this_17.x + (i - this_17.y)) && i !== this_17.y) {
+                        if ((p.x === newX && p.y === newY) && p.colour !== this_17.colour) {
                             pieces = pieces.filter(function (rp) { return rp !== p; });
                             return "break";
                         }
@@ -562,11 +564,11 @@ var Queen = (function (_super) {
                 }
             }
         }
-        else if (newLoc < this.loc && newLoc % 8 === this.loc % 8) {
-            for (var i = this.loc; i >= newLoc; i -= 8) {
+        else if (newX > this.x && newY < this.y) {
+            for (var i = this.y; i >= newY; i--) {
                 var _loop_19 = function (p) {
-                    if (p.loc === i && i != this_18.loc) {
-                        if (p.loc === newLoc && p.colour !== this_18.colour) {
+                    if ((p.y === i && p.x === this_18.x + (this_18.y - i)) && i !== this_18.y) {
+                        if ((p.x === newX && p.y === newY) && p.colour !== this_18.colour) {
                             pieces = pieces.filter(function (rp) { return rp !== p; });
                             return "break";
                         }
@@ -583,11 +585,11 @@ var Queen = (function (_super) {
                 }
             }
         }
-        else if (newLoc > this.loc && Math.floor((this.loc) / 8) === Math.floor((newLoc) / 8)) {
-            for (var i = this.loc; i <= newLoc; i++) {
+        else if (newX < this.x && newY > this.y) {
+            for (var i = this.y; i <= newY; i++) {
                 var _loop_20 = function (p) {
-                    if (p.loc === i && i != this_19.loc) {
-                        if (p.loc === newLoc && p.colour !== this_19.colour) {
+                    if ((p.y === i && p.x === this_19.x - (i - this_19.y)) && i !== this_19.y) {
+                        if ((p.x === newX && p.y === newY) && p.colour !== this_19.colour) {
                             pieces = pieces.filter(function (rp) { return rp !== p; });
                             return "break";
                         }
@@ -604,11 +606,11 @@ var Queen = (function (_super) {
                 }
             }
         }
-        else if (newLoc < this.loc && Math.floor((this.loc) / 8) === Math.floor((newLoc) / 8)) {
-            for (var i = this.loc; i >= newLoc; i--) {
+        else if (newX < this.x && newY < this.y) {
+            for (var i = this.y; i >= newY; i--) {
                 var _loop_21 = function (p) {
-                    if (p.loc === i && i != this_20.loc) {
-                        if (p.loc === newLoc && p.colour !== this_20.colour) {
+                    if ((p.y === i && p.x === this_20.x - (this_20.y - i)) && i !== this_20.y) {
+                        if ((p.x === newX && p.y === newY) && p.colour !== this_20.colour) {
                             pieces = pieces.filter(function (rp) { return rp !== p; });
                             return "break";
                         }
@@ -629,7 +631,8 @@ var Queen = (function (_super) {
             blocked = true;
         }
         if (!blocked) {
-            this.loc = newLoc;
+            this.x = newX;
+            this.y = newY;
             return pieces;
         }
         return piecesCopy;
@@ -638,24 +641,24 @@ var Queen = (function (_super) {
 }(Piece));
 var King = (function (_super) {
     __extends(King, _super);
-    function King(colour, sp) {
+    function King(colour, x, y) {
         var _this = _super.call(this) || this;
         _this.name = 'K';
         _this.colour = colour;
-        _this.loc = sp;
+        _this.x = x;
+        _this.y = y;
         _this.check = false;
         return _this;
     }
-    King.prototype.movePiece = function (newLoc, pieces) {
+    King.prototype.movePiece = function (newX, newY, pieces) {
         var blocked;
-        var absDiff = Math.abs(newLoc - this.loc);
-        if (absDiff === 1 || absDiff === 7 || absDiff === 8 || absDiff === 9) {
+        if (Math.abs(this.x - newX) < 2 && Math.abs(this.y - newY) < 2) {
             var _loop_22 = function (p) {
-                if (p.loc === newLoc && p.colour !== this_21.colour) {
+                if ((p.x === newX && p.y === newY) && p.colour !== this_21.colour) {
                     pieces = pieces.filter(function (rp) { return rp !== p; });
                     return "break";
                 }
-                else if (p.loc === newLoc && p.colour === this_21.colour) {
+                else if ((p.x === newX && p.y === newY) && p.colour === this_21.colour) {
                     blocked = true;
                     return "break";
                 }
@@ -671,80 +674,36 @@ var King = (function (_super) {
         else {
             blocked = true;
         }
-        if (!blocked)
-            this.loc = newLoc;
+        if (!blocked) {
+            this.x = newX;
+            this.y = newY;
+        }
         return pieces;
     };
-    King.prototype.inCheck = function (pieces, newLoc) {
+    King.prototype.inCheck = function (pieces, newX, newY) {
         var _this = this;
-        var nl = newLoc > -1 ? newLoc : this.loc;
         var pawns = pieces.filter(function (p) { return p.colour !== _this.colour && p.name === 'P'; });
         for (var i = 0; i < pawns.length; i++) {
             var p = pawns[i];
-            if (nl + 9 === p.loc && p.colour === 'black') {
+            if ((newX + 1 === p.x && newY + 1 === p.y) && p.colour === 'black') {
                 this.check = true;
                 console.log('pawn');
                 return true;
             }
-            else if (nl + 7 === p.loc && p.colour === 'black') {
+            else if ((newX - 1 === p.x && newY + 1 === p.y) && p.colour === 'black') {
                 this.check = true;
                 console.log('pawn');
                 return true;
             }
-            else if (nl - 7 === p.loc && p.colour === 'white') {
+            else if ((newX - 1 === p.x && newY - 1 === p.y) && p.colour === 'white') {
                 this.check = true;
                 console.log('pawn');
                 return true;
             }
-            else if (nl - 9 === p.loc && p.colour === 'white') {
+            else if ((newX + 1 === p.x && newY - 1 === p.y) && p.colour === 'white') {
                 this.check = true;
                 console.log('pawn');
                 return true;
-            }
-        }
-        var hvPieces = pieces.filter(function (p) { return Math.floor(p.loc / 8) === Math.floor(nl / 8) || p.loc % 8 === nl % 8; });
-        var threats = hvPieces.filter(function (p) { return p.colour !== _this.colour && (p.name === 'R' || p.name === 'Q'); });
-        if (threats.length > 0) {
-            var _loop_23 = function (i) {
-                var t = threats[i];
-                if (t.loc < nl && t.loc % 8 !== nl % 8) {
-                    var buffers = hvPieces.filter(function (p) { return p.loc < nl && p.loc > t.loc && p !== _this; });
-                    if (buffers.length === 0 && threats.length > 0) {
-                        console.log('left');
-                        this_22.check = true;
-                        return { value: true };
-                    }
-                }
-                else if (t.loc > nl && t.loc % 8 !== nl % 8) {
-                    var buffers = hvPieces.filter(function (p) { return p.loc > nl && p.loc < t.loc && p !== _this; });
-                    if (buffers.length === 0 && threats.length > 0) {
-                        console.log('right');
-                        this_22.check = true;
-                        return { value: true };
-                    }
-                }
-                if (t.loc < nl && t.loc % 8 === nl % 8) {
-                    var buffers = hvPieces.filter(function (p) { return p.loc % 8 === nl % 8 && p.loc < nl && p.loc > t.loc && p !== _this; });
-                    if (buffers.length === 0 && threats.length > 0) {
-                        console.log('above');
-                        this_22.check = true;
-                        return { value: true };
-                    }
-                }
-                else if (t.loc > nl && t.loc % 8 === nl % 8) {
-                    var buffers = hvPieces.filter(function (p) { return p.loc % 8 === nl % 8 && p.loc > nl && p.loc < t.loc && p !== _this; });
-                    if (buffers.length === 0 && threats.length > 0) {
-                        console.log('below');
-                        this_22.check = true;
-                        return { value: true };
-                    }
-                }
-            };
-            var this_22 = this;
-            for (var i = 0; i < threats.length; i++) {
-                var state_21 = _loop_23(i);
-                if (typeof state_21 === "object")
-                    return state_21.value;
             }
         }
         this.check = false;
@@ -754,7 +713,8 @@ var King = (function (_super) {
 }(Piece));
 var board;
 var pieces;
-var active;
+var activeX;
+var activeY;
 var startButton;
 var started;
 var ended;
@@ -770,40 +730,34 @@ function setup() {
     ended = false;
     whiteTurn = false;
     reset = false;
-    for (var i = 0; i < 16; i++) {
-        if (i < 8) {
-            pieces.push(new Pawn('black', i + 48));
-        }
-        else {
-            pieces.push(new Pawn('white', i));
-        }
+    for (var i = 0; i < 8; i++) {
+        pieces.push(new Pawn('white', i, 1));
+        pieces.push(new Pawn('black', i, 6));
     }
-    pieces.push(new Rook('black', 56));
-    pieces.push(new Rook('black', 63));
-    pieces.push(new Rook('white', 0));
-    pieces.push(new Rook('white', 7));
-    pieces.push(new Knight('black', 57));
-    pieces.push(new Knight('black', 62));
-    pieces.push(new Knight('white', 1));
-    pieces.push(new Knight('white', 6));
-    pieces.push(new Bishop('black', 58));
-    pieces.push(new Bishop('black', 61));
-    pieces.push(new Bishop('white', 2));
-    pieces.push(new Bishop('white', 5));
-    pieces.push(new King('black', 59));
-    pieces.push(new King('white', 3));
-    pieces.push(new Queen('black', 60));
-    pieces.push(new Queen('white', 4));
+    pieces.push(new Rook('white', 0, 0));
+    pieces.push(new Rook('white', 7, 0));
+    pieces.push(new Rook('black', 0, 7));
+    pieces.push(new Rook('black', 7, 7));
+    pieces.push(new Knight('white', 1, 0));
+    pieces.push(new Knight('white', 6, 0));
+    pieces.push(new Knight('black', 1, 7));
+    pieces.push(new Knight('black', 6, 7));
+    pieces.push(new Bishop('white', 2, 0));
+    pieces.push(new Bishop('white', 5, 0));
+    pieces.push(new Bishop('black', 2, 7));
+    pieces.push(new Bishop('black', 5, 7));
+    pieces.push(new King('white', 3, 0));
+    pieces.push(new King('black', 3, 7));
+    pieces.push(new Queen('white', 4, 0));
+    pieces.push(new Queen('black', 4, 7));
     startButton = createButton('Start');
     startButton.position(1100, 100);
     startButton.size(100, 30);
     startButton.mousePressed(startGame);
-    wCheckMsg = createP("");
-    bCheckMsg = createP("");
+    wCheckMsg = createP('');
+    bCheckMsg = createP('');
 }
 function draw() {
-    background(255);
-    square(0, 0, 1000);
     board.draw(pieces, whiteTurn);
     pieces.forEach(function (p) { return p.draw(); });
 }
@@ -813,51 +767,57 @@ function mouseClicked() {
     if (mouseX <= 1000 && mouseY <= 1000) {
         var x = Math.floor(mouseX / 125);
         var y = Math.floor(mouseY / 125);
-        var z = x + y * 8;
-        var tile_1 = board.tiles[z];
-        if (active === undefined) {
-            var piece = pieces.filter(function (p) { return p.loc === tile_1.index; })[0];
+        var tile_1 = board.tiles[y][x];
+        if (activeX === undefined && activeY === undefined) {
+            var piece = pieces.filter(function (p) { return p.x === tile_1.x && p.y === tile_1.y; })[0];
             if (piece) {
                 if ((piece.colour === 'white') === whiteTurn) {
-                    active = tile_1.index;
+                    activeX = tile_1.x;
+                    activeY = tile_1.y;
                     tile_1.setActive();
                 }
             }
         }
         else {
-            if (board.tiles[active].index === tile_1.index) {
+            var st = board.tiles[activeY][activeX];
+            if (st.x === tile_1.x && st.y === tile_1.y) {
                 tile_1.setInactive();
-                active = undefined;
+                activeX = undefined;
+                activeY = undefined;
             }
             else {
-                board.tiles[active].setInactive();
+                st.setInactive();
                 var piece_1;
                 pieces.forEach(function (p) {
-                    if (p.loc === active) {
+                    if (p.x === activeX && p.y === activeY) {
                         piece_1 = p;
                     }
                 });
                 if (piece_1.name === 'K') {
-                    if (piece_1.inCheck(pieces, z)) {
+                    if (piece_1.inCheck(pieces, x, y)) {
                         piece_1 = undefined;
                         tile_1.setInactive;
-                        active = undefined;
+                        activeX = undefined;
+                        activeY = undefined;
                     }
                 }
                 if (piece_1) {
                     if ((piece_1.colour === 'white') === whiteTurn) {
-                        pieces = piece_1.movePiece(z, pieces);
-                        active = undefined;
-                        if (piece_1.loc === z)
+                        pieces = piece_1.movePiece(x, y, pieces);
+                        activeX = undefined;
+                        activeY = undefined;
+                        if (piece_1.x === x && piece_1.y === y)
                             whiteTurn = !whiteTurn;
                     }
                     else {
-                        active = undefined;
+                        activeX = undefined;
+                        activeY = undefined;
                     }
                 }
             }
         }
     }
+    console.log(whiteTurn);
     if (checkWinner()) {
         if (!whiteTurn) {
             console.log('White wins!');
@@ -871,12 +831,12 @@ function mouseClicked() {
     if (ended)
         return false;
     var kings = pieces.filter(function (p) { return p.name === 'K'; });
-    if (kings[0].inCheck(pieces, -1))
-        wCheckMsg.html('Black in check!');
+    if (kings[0].inCheck(pieces, kings[0].x, kings[0].y))
+        wCheckMsg.html('White in check!');
     else
         wCheckMsg.html('');
-    if (kings[1].inCheck(pieces, -1))
-        bCheckMsg.html('White in check!');
+    if (kings[1].inCheck(pieces, kings[1].x, kings[1].y))
+        bCheckMsg.html('Black in check!');
     else
         bCheckMsg.html('');
     return false;

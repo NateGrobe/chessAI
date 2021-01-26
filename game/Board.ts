@@ -1,9 +1,11 @@
 class Tile {
   active: boolean;
-  index: number;
+  x: number;
+  y: number;
   
-  constructor(index: number) {
-    this.index = index;
+  constructor(x: number, y: number) {
+    this.x = x;
+    this.y = y;
     this.active = false;
   }
 
@@ -17,11 +19,15 @@ class Tile {
 }
 
 class Board {
-  tiles: Tile[] = [];
+  tiles: Tile[][] = [];
 
   constructor() {
-    for(let i = 0; i < 64; i++) {
-      this.tiles.push(new Tile(i));
+    for(let i = 0; i < 8; i++) {
+      const row = [];
+      for(let j = 0; j < 8; j++) {
+        row.push(new Tile(j, i));
+      }
+      this.tiles.push(row);
     }
   }
 
@@ -30,11 +36,17 @@ class Board {
       for (let j = 0; j < 8; j++) {
         const x = 125 * i;
         const y = 125 * j;
-        let colour = (i-j) % 2 == 0 ? color(255, 255, 255) : color(0, 0, 0);
-        const activePiece = pieces.filter(p => p.loc === i+j*8)[0];
-        if (this.tiles[i + j*8].active && (activePiece.colour === 'white') === whiteTurn) {
-          colour = (i-j) % 2 == 0 ? color(200, 200, 200) : color(55,55,55);
+        let colour = (i-j) % 2 === 0 ? color(240, 240, 240) : color(15, 15, 15);
+        const activePiece = pieces.filter(p => p.x === j && p.y === i)[0];
+
+        // find a different way to highlight text
+        if(activePiece){
+          if (this.tiles[j][i].active && (activePiece.colour === 'white') === whiteTurn) {
+            colour = (i-j) % 2 === 0 ? color(200, 200, 200) : color(55,55,55);
+          }
         }
+        stroke(0,0,0);
+        strokeWeight(1);
         fill(colour);
         square(x, y, 125);
       }
