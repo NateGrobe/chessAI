@@ -65,7 +65,7 @@ function setup(): void {
 }
 
 function draw(): void {
-  board.draw(pieces, whiteTurn);
+  board.draw(pieces, whiteTurn, activeX, activeY);
   pieces.forEach(p => p.draw());
 } 
 
@@ -134,8 +134,6 @@ function mouseClicked(): boolean {
     }
   }
 
-  console.log(whiteTurn);
-  
   // for testing purposes
   //whiteTurn = true;
   //whiteTurn = false;
