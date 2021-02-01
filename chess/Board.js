@@ -1,27 +1,22 @@
 class Tile {
-  active: boolean;
-  x: number;
-  y: number;
-  
-  constructor(x: number, y: number) {
+  constructor(x, y) {
     this.x = x;
     this.y = y;
     this.active = false;
   }
 
-  setActive(): void {
+  setActive(){
     this.active = true;
   }
 
-  setInactive(): void {
+  setInactive(){
     this.active = false;
   }
 }
 
 class Board {
-  tiles: Tile[][] = [];
-
   constructor() {
+    this.tiles = [];
     for(let i = 0; i < 8; i++) {
       const row = [];
       for(let j = 0; j < 8; j++) {
@@ -31,26 +26,29 @@ class Board {
     }
   }
 
-  draw(pieces: Piece[], whiteTurn: boolean, newX: number, newY: number): void {
+  //draw(pieces, whiteTurn, newX, newY, p){
+  draw(pieces, whiteTurn, newX, newY, p){
     for(let i = 0; i < 8; i++) {
       for (let j = 0; j < 8; j++) {
         const x = 125 * i;
         const y = 125 * j;
-        let colour = (i-j) % 2 === 0 ? color(240, 240, 240) : color(15, 15, 15);
+        let colour = (i-j) % 2 === 0 ? p.color(240, 240, 240) : p.color(15, 15, 15);
 
         // highlight piece that is selected
         const activePiece = pieces.filter(p => p.x === newX && p.y === newY)[0];
 
         if(activePiece){
           if (this.tiles[j][i].active && (activePiece.colour === 'white') === whiteTurn) {
-            colour = (i-j) % 2 === 0 ? color(200, 200, 200) : color(55, 55, 55);
+            colour = (i-j) % 2 === 0 ? p.color(200, 200, 200) : p.color(55, 55, 55);
           }
         }
-        stroke(0,0,0);
-        strokeWeight(1);
-        fill(colour);
-        square(x, y, 125);
+        p.stroke(0,0,0);
+        p.strokeWeight(1);
+        p.fill(colour);
+        p.square(x, y, 125);
       }
     }
   }
 }
+
+export default Board;

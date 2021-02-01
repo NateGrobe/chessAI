@@ -1,37 +1,40 @@
-class Piece {
-  colour: string;
-  loc: number;
-  name: string;
-  check: boolean
-  x: number;
-  y: number;
+export class Piece {
 
-  draw(): void {
-    const coords = [this.x * 125 + 50, this.y * 125 + 85];
-    fill(this.colorToString(this.colour));
-    strokeWeight(2);
-    this.colour === 'white' ? stroke(0) : stroke(255);
-    textSize(50);
-    text(this.name, coords[0], coords[1]);
+  constructor() {
+    this.colour;
+    this.loc;
+    this.name;
+    this.check;
+    this.x;
+    this.y;
   }
 
-  inCheck(pieces: Piece[], newX: number, newY: number): boolean { 
+  draw(p){
+    const coords = [this.x * 125 + 50, this.y * 125 + 85];
+    p.fill(this.colorToString(this.colour, p));
+    p.strokeWeight(2);
+    this.colour === 'white' ? p.stroke(0) : p.stroke(255);
+    p.textSize(50);
+    p.text(this.name, coords[0], coords[1]);
+  }
+
+  inCheck(pieces, newX, newY){ 
     return false;
   }
 
-  private colorToString(colour: string): p5.Color {
-    return colour === 'black' ? color(0, 0, 0) : color(255, 255, 255);
+  colorToString(colour, p){
+    return colour === 'black' ? p.color(0, 0, 0) : p.color(255, 255, 255);
   }
 
-  movePiece(newX: number, newY: number, pieces: Piece[]): Piece[]{
+  movePiece(newX, newY, pieces){
     return pieces;
   }
 }
 
 
-class Pawn extends Piece {
+export class Pawn extends Piece {
   // moves +8 or +16 on first turn
-  constructor(colour: string, x: number, y: number) {
+  constructor(colour, x, y) {
     super();
     this.name = 'P';
     this.colour = colour;
@@ -39,7 +42,7 @@ class Pawn extends Piece {
     this.y = y;
   }
 
-  movePiece(newX: number, newY: number, pieces: Piece[]): Piece[] {
+  movePiece(newX, newY, pieces){
     let blocked = false;
     // handle white pawns
     if (this.colour === 'white') {
@@ -113,8 +116,8 @@ class Pawn extends Piece {
   }
 }
 
-class Rook extends Piece {
-  constructor(colour: string, x: number, y: number) {
+export class Rook extends Piece {
+  constructor(colour, x, y) {
     super();
     this.name = 'R';
     this.colour = colour;
@@ -123,7 +126,7 @@ class Rook extends Piece {
   }
 
   // need to handle removing pieces still
-  movePiece(newX: number, newY: number, pieces: Piece[]): Piece[] {
+  movePiece(newX, newY, pieces){
     let blocked = false;
     const piecesCopy = pieces;
     // moving down a column
@@ -195,8 +198,8 @@ class Rook extends Piece {
   }
 }
 
-class Bishop extends Piece {
-  constructor(colour: string,  x: number, y: number) {
+export class Bishop extends Piece {
+  constructor(colour,  x, y) {
     super();
     this.name = 'B';
     this.colour = colour;
@@ -204,7 +207,7 @@ class Bishop extends Piece {
     this.y = y;
   }
 
-  movePiece(newX: number, newY: number, pieces: Piece[]): Piece[] {
+  movePiece(newX, newY, pieces){
     let blocked = false;
     const piecesCopy = pieces;
     
@@ -277,8 +280,8 @@ class Bishop extends Piece {
   }
 }
 
-class Knight extends Piece {
-  constructor(colour: string, x: number, y: number) {
+export class Knight extends Piece {
+  constructor(colour, x, y) {
     super();
     this.name = 'H';
     this.colour = colour;
@@ -286,7 +289,7 @@ class Knight extends Piece {
     this.y = y;
   }
 
-  movePiece(newX: number, newY: number, pieces: Piece[]): Piece[] {
+  movePiece(newX, newY, pieces){
     let blocked = false;
     if((Math.abs(newX - this.x) === 2 && Math.abs(newY - this.y) === 1) || (Math.abs(newY - this.y) === 2 && Math.abs(newX - this.x) === 1)) {
       for(const p of pieces) {
@@ -310,8 +313,8 @@ class Knight extends Piece {
   }
 }
 
-class Queen extends Piece {
-  constructor(colour: string, x: number, y: number) {
+export class Queen extends Piece {
+  constructor(colour, x, y) {
     super();
     this.name = 'Q';
     this.colour = colour;
@@ -319,7 +322,7 @@ class Queen extends Piece {
     this.y = y;
   }
 
-  movePiece(newX: number, newY: number, pieces: Piece[]): Piece[] {
+  movePiece(newX, newY, pieces){
     let blocked = false;
     const piecesCopy = pieces;
 
@@ -448,8 +451,8 @@ class Queen extends Piece {
   }
 }
 
-class King extends Piece {
-  constructor(colour: string, x: number, y: number) {
+export class King extends Piece {
+  constructor(colour, x, y) {
     super();
     this.name = 'K';
     this.colour = colour;
@@ -458,7 +461,7 @@ class King extends Piece {
     this.check = false;
   }
 
-  movePiece(newX: number, newY: number, pieces: Piece[]): Piece[] {
+  movePiece(newX, newY, pieces){
     let blocked;
     if(Math.abs(this.x - newX) < 2 && Math.abs(this.y - newY) < 2) {
       for(const p of pieces) {
@@ -482,7 +485,7 @@ class King extends Piece {
   }
 
   // add checkmate by calling this function on all moves for a king each turn
-  inCheck(pieces: Piece[], newX: number, newY: number): boolean {
+  inCheck(pieces, newX, newY){
     // check for pawns
     const pawns = pieces.filter(p => p.colour !== this.colour && p.name === 'P');
     for(let i = 0; i < pawns.length; i++) {
@@ -557,3 +560,4 @@ class King extends Piece {
     return false;
   }
 }
+
