@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>Chess Engine</title>
+
+        <!-- jQuery  -->
+        <script
+            src="https://code.jquery.com/jquery-3.5.1.js"
+            integrity="sha256-QWo7LDvxbWT2tbbQ97B53yJnYU3WhH/C8ycbRAkjPDc="
+            crossorigin="anonymous">
+        </script>
+
+        <!-- chessboardjs -->
+        <link rel="stylesheet"
+            href="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.css"
+            integrity="sha384-q94+BZtLrkL1/ohfjR8c6L+A6qzNH9R2hBLwyoAfu3i/WCvQjzL2RQJ3uNHDISdU"
+            crossorigin="anonymous">
+        <script src="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.js"
+            integrity="sha384-8Vi8VHwn3vjQ9eUHUxex3JSN/NFqUg3QbPyX8kWyb93+8AC/pPWTzj+nHtbC5bxD"
+            crossorigin="anonymous"
+            defer></script>
+
+        <!-- chess -->
+        <script src="chess.js" defer></script>
+
+        <!-- custom logic -->
+        <script src="tables.js" defer></script>
+        <script src="minimax.js" defer></script>
+        <script src="main.js" defer></script>
+    </head>
+    <body>
+        <div id="myBoard" style="width: 800px">
+        </div>
+        <br>
+        <button id="reset-btn">Reset</button>
+        <div id="win-text"></div>
+    </body>
+</html>
